@@ -1,11 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"sync"
@@ -15,15 +11,6 @@ const (
 	maxBufferSize = 1024
 	port          = ":7771"
 )
-
-type UnityPulseData struct {
-	Session       string  `json:"session"`
-	Identifier    string  `json:"identifier"`
-	Version       string  `json:"version"`
-	Platform      string  `json:"platform"`
-	Device        string  `json:"device"`
-	CollectedData []int64 `json:"collectedData"`
-}
 
 func main() {
 	addr, err := net.ResolveUDPAddr("udp", port)
@@ -59,64 +46,48 @@ func handleUDPConnection(conn *net.UDPConn, wg *sync.WaitGroup) {
 		}
 
 		go func(data []byte, addr *net.UDPAddr) {
-			d := GetUnityPulse(data)
-			log.Printf("Received %d bytes from %s", n, addr)
-			log.Printf("Data: %s", d)
+			msgType := data[0]
+			switch msgType {
+			case 0:
+				getPulseSessionStart(data, addr)
+				break
+			case 1:
+				getPulseData(data, addr)
+				break
+			case 2:
+				getPulseSessionStop(data, addr)
+				break
+			}
 		}(buffer[:n], addr)
 	}
 }
 
-func GetUnityPulse(data []byte) string {
-	reader := bytes.NewReader(data)
-
-	upd := UnityPulseData{}
-
-	upd.Session = readString(reader)
-	upd.Identifier = readString(reader)
-	upd.Version = readString(reader)
-	upd.Platform = readString(reader)
-	upd.Device = readString(reader)
-	upd.CollectedData = readLongArray(reader)
-
-	jsonData, err := json.MarshalIndent(upd, "", "  ")
+func getPulseSessionStart(data []byte, addr *net.UDPAddr) {
+	s, err := ParsePulseSessionStart(data)
 	if err != nil {
-		log.Fatalf("JSON marshalling failed: %s", err)
+		fmt.Println("session start error:", err)
+		return
 	}
-	return string(jsonData)
+
+	fmt.Println("session start:", string(s.Session))
 }
 
-func readString(reader io.Reader) string {
-	var length int32
-	if err := binary.Read(reader, binary.LittleEndian, &length); err != nil {
-		log.Fatalf("Failed to read string length: %s", err)
+func getPulseData(data []byte, addr *net.UDPAddr) {
+	p, err := ParsePulseData(data)
+	if err != nil {
+		fmt.Println("pulse data error:", err)
+		return
 	}
 
-	if length == 0 {
-		return ""
-	}
-
-	stringBytes := make([]byte, length)
-	if err := binary.Read(reader, binary.LittleEndian, &stringBytes); err != nil {
-		log.Fatalf("Failed to read string: %s", err)
-	}
-
-	return string(stringBytes)
+	fmt.Println("pulse data:", len(p.CollectedData))
 }
 
-func readLongArray(reader io.Reader) []int64 {
-	var length int32
-	if err := binary.Read(reader, binary.LittleEndian, &length); err != nil {
-		log.Fatalf("Failed to read long array length: %s", err)
+func getPulseSessionStop(data []byte, addr *net.UDPAddr) {
+	s, err := ParsePulseSessionStop(data)
+	if err != nil {
+		fmt.Println("session stop error:", err)
+		return
 	}
 
-	if length == 0 {
-		return []int64{}
-	}
-
-	longArray := make([]int64, length)
-	if err := binary.Read(reader, binary.LittleEndian, &longArray); err != nil {
-		log.Fatalf("Failed to read long array: %s", err)
-	}
-
-	return longArray
+	fmt.Println("session stop:", string(s.Session))
 }

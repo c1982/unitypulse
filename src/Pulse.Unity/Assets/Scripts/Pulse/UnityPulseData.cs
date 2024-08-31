@@ -1,70 +1,45 @@
-using System.IO;
-using System.Text;
+using System;
 
 namespace Pulse
 {
-    public readonly struct UnityPulseData
+    internal readonly struct UnityPulseData
     {
-        private readonly string _session;
+        private readonly byte _msgType;
+        private readonly byte[] _session;
         private readonly long[] _collectedData;
-        private readonly string _identifier;
-        private readonly string _version;
-        private readonly string _platform;
-        private readonly string _device;
         
-        public UnityPulseData(string session, string identifier, string version, string platform, string device, long[] data)
+        public UnityPulseData(byte[] session, long[] data)
         {
+            _msgType = 0x01;
             _session = session;
-            _identifier = identifier;
-            _version = version;
-            _platform = platform;
-            _device = device;
             _collectedData = data;
         }
         
         public byte[] ToBytes()
         {
-            using var memoryStream = new MemoryStream();
-            using (var writer = new BinaryWriter(memoryStream))
-            {
-                WriteString(writer, _session);
-                WriteString(writer, _identifier);
-                WriteString(writer, _version);
-                WriteString(writer, _platform);
-                WriteString(writer, _device);
-                WriteLongArray(writer, _collectedData);
-            }
-            return memoryStream.ToArray();
-        }
+            int totalSize = 1 + 4 + _session.Length + 4 + 8 * _collectedData.Length;
+            Span<byte> buffer = totalSize <= 256 ? stackalloc byte[totalSize] : new byte[totalSize];
 
-        private void WriteString(BinaryWriter writer, string value)
-        {
-            if (value == null)
-            {
-                writer.Write(0);
-            }
-            else
-            {
-                var stringBytes = Encoding.UTF8.GetBytes(value);
-                writer.Write(stringBytes.Length);
-                writer.Write(stringBytes);
-            }
-        }
+            int offset = 0;
 
-        private void WriteLongArray(BinaryWriter writer, long[] array)
-        {
-            if (array == null)
+            buffer[offset] = _msgType;
+            offset += 1;
+
+            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _session.Length);
+            offset += 4;
+            _session.CopyTo(buffer.Slice(offset));
+            offset += _session.Length;
+
+            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _collectedData.Length);
+            offset += 4;
+
+            for (int i = 0; i < _collectedData.Length; i++)
             {
-                writer.Write(0);
+                BitConverter.TryWriteBytes(buffer.Slice(offset, 8), _collectedData[i]);
+                offset += 8;
             }
-            else
-            {
-                writer.Write(array.Length);
-                foreach (var value in array)
-                {
-                    writer.Write(value);
-                }
-            }
+
+            return buffer.ToArray();
         }
     }
 }

@@ -1,12 +1,13 @@
+using Pulse;
 using UnityEngine;
 
-namespace Pulse
+namespace Example
 {
     public class UnityPulseController : MonoBehaviour
     {
         private UnityPulse _pulse;
         
-        public void Start()
+        public void Awake()
         {
             Application.targetFrameRate = 60;
             
