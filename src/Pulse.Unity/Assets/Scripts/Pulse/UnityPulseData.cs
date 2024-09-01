@@ -15,31 +15,31 @@ namespace Pulse
             _collectedData = data;
         }
         
-        public byte[] ToBytes()
+        public void Write(ref byte[] buffer)
         {
-            int totalSize = 1 + 4 + _session.Length + 4 + 8 * _collectedData.Length;
-            Span<byte> buffer = totalSize <= 256 ? stackalloc byte[totalSize] : new byte[totalSize];
-
-            int offset = 0;
-
+            var offset = 0;
+            var requiredSize = 1 + 4 + _session.Length + 4 + 8 * _collectedData.Length;
+            if (buffer == null || buffer.Length < requiredSize)
+            {
+                buffer = new byte[requiredSize];
+            }
+            
             buffer[offset] = _msgType;
             offset += 1;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _session.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _session.Length);
             offset += 4;
-            _session.CopyTo(buffer.Slice(offset));
+            _session.CopyTo(buffer.AsSpan(offset));
             offset += _session.Length;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _collectedData.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _collectedData.Length);
             offset += 4;
 
-            for (int i = 0; i < _collectedData.Length; i++)
+            for (var i = 0; i < _collectedData.Length; i++)
             {
-                BitConverter.TryWriteBytes(buffer.Slice(offset, 8), _collectedData[i]);
+                BitConverter.TryWriteBytes(buffer.AsSpan(offset, 8), _collectedData[i]);
                 offset += 8;
             }
-
-            return buffer.ToArray();
         }
     }
 }

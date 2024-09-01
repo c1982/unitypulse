@@ -21,41 +21,41 @@ namespace Pulse
             _device = device;
         }
         
-        public byte[] ToBytes()
+        public void Write(ref byte[] buffer)
         {
-            int totalSize = 1 + 4 + _session.Length + 4 + _identifier.Length + 4 + _version.Length + 4 + _platform.Length + 4 + _device.Length;
-            Span<byte> buffer = totalSize <= 256 ? stackalloc byte[totalSize] : new byte[totalSize];
-
-            int offset = 0;
+            var offset = 0;
+            var requiredSize = 1 + 4 + _session.Length + 4 + _identifier.Length + 4 + _version.Length + 4 + _platform.Length + 4 + _device.Length;
+            if (buffer == null || buffer.Length < requiredSize)
+            {
+                buffer = new byte[requiredSize];
+            }
 
             buffer[offset] = _msgType;
             offset += 1;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _session.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _session.Length);
             offset += 4;
-            _session.CopyTo(buffer.Slice(offset));
+            _session.CopyTo(buffer.AsSpan(offset));
             offset += _session.Length;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _identifier.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _identifier.Length);
             offset += 4;
-            _identifier.CopyTo(buffer.Slice(offset));
+            _identifier.CopyTo(buffer.AsSpan(offset));
             offset += _identifier.Length;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _version.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _version.Length);
             offset += 4;
-            _version.CopyTo(buffer.Slice(offset));
+            _version.CopyTo(buffer.AsSpan(offset));
             offset += _version.Length;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _platform.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _platform.Length);
             offset += 4;
-            _platform.CopyTo(buffer.Slice(offset));
+            _platform.CopyTo(buffer.AsSpan(offset));
             offset += _platform.Length;
 
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _device.Length);
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _device.Length);
             offset += 4;
-            _device.CopyTo(buffer.Slice(offset));
-
-            return buffer.ToArray();
+            _device.CopyTo(buffer.AsSpan(offset));
         }
     }
 
@@ -70,21 +70,23 @@ namespace Pulse
             _session = session;
         }
         
-        public byte[] ToBytes()
+        public void Write(ref byte[] buffer)
         {
-            var totalSize = 1 + 4 + _session.Length;
-            Span<byte> buffer = totalSize <= 256 ? stackalloc byte[totalSize] : new byte[totalSize];
+            int requiredSize = 1 + 4 + _session.Length;
+            if (buffer == null || buffer.Length < requiredSize)
+            {
+                buffer = new byte[requiredSize];
+            }
 
-            var offset = 0;
+            int offset = 0;
+
             buffer[offset] = _msgType;
             offset += 1;
-        
-            BitConverter.TryWriteBytes(buffer.Slice(offset, 4), _session.Length);
+
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _session.Length);
             offset += 4;
 
-            _session.CopyTo(buffer.Slice(offset));
-
-            return buffer.ToArray();
+            _session.CopyTo(buffer.AsSpan(offset));
         }
     }
 }

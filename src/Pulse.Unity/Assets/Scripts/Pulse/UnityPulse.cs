@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace Pulse
 {
-    public class UnityPulse
+    public sealed class UnityPulse
     {
         private bool _collecting;
-        private UdpTransport _transport;
+        private byte[] _buffer;
         private readonly int _secondInterval;
         private readonly int _port;
         private readonly string _host;
@@ -21,10 +21,9 @@ namespace Pulse
         private readonly byte[] _platform;
         private readonly byte[] _device;
         private readonly long[] _recorderValues;
+        
+        private UdpTransport _transport;
         private readonly List<ProfilerRecorder> _recorders;
-        
-        private readonly byte[] _pulseDataTest = new byte[10];
-        
         private readonly Dictionary<ProfilerCategory, string[]> _profileMetrics = new()
         {
             {
@@ -63,7 +62,7 @@ namespace Pulse
         
         public UnityPulse(string host, int port)
         {
-            _pulseDataTest[0] = 0x05;
+            _buffer = new byte[256];
             
             _host = host;
             _port = port;
@@ -98,7 +97,7 @@ namespace Pulse
             StopSession();
             StopRecorders();
             
-            _transport.Dispose();
+            _transport?.Dispose();
         }
         
         public void Collect()
@@ -108,16 +107,25 @@ namespace Pulse
 
             if (Time.frameCount % (_secondInterval * 60) != 0)
                 return;
-            
-            for (var i = 0; i < _recorders.Count; i++)
-                _recorderValues[i] = _recorders[i].LastValue;
 
-            _recorderValues[^1] = GetFps();
+            FillRecordValues();
+            ClearBuffer(_buffer);
             
             var pulseData = new UnityPulseData(_session, _recorderValues);
-            var bytes = pulseData.ToBytes();
+            lock(_buffer)
+            {
+                pulseData.Write(ref _buffer);
+            }
             
-            _ =  _transport?.SendDataAsync(bytes);
+            _ =  _transport?.SendDataAsync(_buffer);
+        }
+
+        private void FillRecordValues()
+        {
+            for (var i = 0; i < _recorders.Count; i++)
+                _recorderValues[i] = _recorders[i].LastValue;
+            
+            _recorderValues[^1] = GetFps();
         }
 
         private int GetFps()
@@ -127,16 +135,27 @@ namespace Pulse
         
         private void StartSession()
         {
-            var session = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
-            _ = _transport.SendDataAsync(session.ToBytes());
+            var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
+
+            lock (_buffer)
+            {
+                start.Write(ref _buffer);
+            }
             
+            _ = _transport.SendDataAsync(_buffer);
             _collecting = true;
+            ClearBuffer(_buffer);
         }
         
         private void StopSession()
         {
-            var session = new UnityPulseSessionStop(_session);
-            _ = _transport.SendDataAsync(session.ToBytes());
+            var stop = new UnityPulseSessionStop(_session);
+            lock (_buffer)
+            {
+                stop.Write(ref _buffer);
+            }
+            _ = _transport.SendDataAsync(_buffer);
+            ClearBuffer(_buffer);
         }
         
         private void StopRecorders()
@@ -147,6 +166,10 @@ namespace Pulse
                 recorder.Dispose();
             }
         }
-
+        
+        private void ClearBuffer(byte[] buffer)
+        {
+            Array.Clear(buffer, 0, buffer.Length);
+        }
     }
 }
