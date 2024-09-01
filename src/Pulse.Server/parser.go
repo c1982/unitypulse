@@ -38,7 +38,7 @@ func ParsePulseSessionStart(data []byte) (*PulseSessionStart, error) {
 	buffer := bytes.NewBuffer(data)
 	session := PulseSessionStart{}
 
-	if err := binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
+	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func ParsePulseSessionStop(data []byte) (*PulseSessionStop, error) {
 
 	session := PulseSessionStop{}
 
-	if err := binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
+	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
 	}
 
@@ -89,14 +89,14 @@ func ParsePulseSessionStop(data []byte) (*PulseSessionStop, error) {
 }
 
 func ParsePulseData(data []byte) (*PulseData, error) {
+	var err error
 	buffer := bytes.NewBuffer(data)
 	session := PulseData{}
 
-	if err := binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
+	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
 	}
 
-	var err error
 	session.Session, err = ReadBytes(buffer)
 	if err != nil {
 		return nil, err
@@ -108,4 +108,40 @@ func ParsePulseData(data []byte) (*PulseData, error) {
 	}
 
 	return &session, nil
+}
+
+func ParsePulseCustomData(data []byte) (*UnityPulseCustomData, error) {
+	buffer := bytes.NewReader(data)
+
+	customData := UnityPulseCustomData{}
+
+	if err := binary.Read(buffer, binary.LittleEndian, &customData.MsgType); err != nil {
+		return nil, err
+	}
+
+	var sessionLength int32
+	if err := binary.Read(buffer, binary.LittleEndian, &sessionLength); err != nil {
+		return nil, err
+	}
+
+	customData.Session = make([]byte, sessionLength)
+	if err := binary.Read(buffer, binary.LittleEndian, &customData.Session); err != nil {
+		return nil, err
+	}
+
+	var keyLength int32
+	if err := binary.Read(buffer, binary.LittleEndian, &keyLength); err != nil {
+		return nil, err
+	}
+
+	customData.Key = make([]byte, keyLength)
+	if err := binary.Read(buffer, binary.LittleEndian, &customData.Key); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Read(buffer, binary.LittleEndian, &customData.Value); err != nil {
+		return nil, err
+	}
+
+	return &customData, nil
 }

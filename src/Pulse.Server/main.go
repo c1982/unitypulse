@@ -57,8 +57,11 @@ func handleUDPConnection(conn *net.UDPConn, wg *sync.WaitGroup) {
 			case 2:
 				getPulseSessionStop(data, addr)
 				break
+			case 3:
+				getPulseCustomData(data, addr)
+				break
 			default:
-				fmt.Println("unknown message type")
+				fmt.Println("unknown message type:", msgType)
 			}
 		}(buffer[:n], addr)
 	}
@@ -90,4 +93,14 @@ func getPulseSessionStop(data []byte, addr *net.UDPAddr) {
 	}
 
 	fmt.Println("session stop:", string(s.Session))
+}
+
+func getPulseCustomData(data []byte, addr *net.UDPAddr) {
+	t, err := ParsePulseCustomData(data)
+	if err != nil {
+		fmt.Println("custom data error:", err)
+		return
+	}
+
+	fmt.Println("custom data:", string(t.Key), t.Value)
 }
