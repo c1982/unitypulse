@@ -90,7 +90,6 @@ func ParsePulseSessionStop(data []byte) (*PulseSessionStop, error) {
 
 func ParsePulseData(data []byte) (*PulseData, error) {
 	buffer := bytes.NewBuffer(data)
-
 	session := PulseData{}
 
 	if err := binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
