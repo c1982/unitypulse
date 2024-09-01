@@ -117,7 +117,26 @@ namespace Pulse
                 pulseData.Write(ref _buffer);
             }
             
-            _ =  _transport?.SendDataAsync(_buffer);
+            _ =  _transport?.SendData(_buffer);
+        }
+
+        public void Collect(byte[] key, long value)
+        {
+            if(!_collecting)
+                return;
+            
+            if (Time.frameCount % (_secondInterval * 60) != 0)
+                return;
+            
+            ClearBuffer(_buffer);
+            
+            var pulseCustomData = new UnityPulseCustomData(_session, key, value);
+            lock(_buffer)
+            {
+                pulseCustomData.Write(ref _buffer);
+            }
+            
+            _ =  _transport?.SendData(_buffer);
         }
 
         private void FillRecordValues()
@@ -142,7 +161,7 @@ namespace Pulse
                 start.Write(ref _buffer);
             }
             
-            _ = _transport.SendDataAsync(_buffer);
+            _ = _transport.SendData(_buffer);
             _collecting = true;
             ClearBuffer(_buffer);
         }
@@ -154,7 +173,7 @@ namespace Pulse
             {
                 stop.Write(ref _buffer);
             }
-            _ = _transport.SendDataAsync(_buffer);
+            _ = _transport.SendData(_buffer);
             ClearBuffer(_buffer);
         }
         

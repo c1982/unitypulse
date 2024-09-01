@@ -16,9 +16,14 @@ namespace Pulse.Transports
             _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
         }
         
-        public int SendDataAsync(byte[] data)
+        public int SendData(byte[] data)
         {
             return _udpClient.Send(data, data.Length);
+        }
+        
+        public async void SendDataAsync(byte[] data)
+        {
+            await _udpClient.SendAsync(data, data.Length);
         }
 
         public void Dispose()

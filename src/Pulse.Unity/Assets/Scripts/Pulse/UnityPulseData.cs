@@ -42,4 +42,45 @@ namespace Pulse
             }
         }
     }
+
+    internal readonly struct UnityPulseCustomData
+    {
+        private readonly byte _msgType;
+        private readonly byte[] _session;
+        private readonly byte[] _key;
+        private readonly long _value;
+
+        public UnityPulseCustomData(byte[] session, byte[] key, long value)
+        {
+            _msgType = 0x03;
+            _session = session;
+            _key = key;
+            _value = value;
+        }
+
+        public void Write(ref byte[] buffer)
+        {
+            var offset = 0;
+            var requiredSize = 1 + 4 + _session.Length + 4 + _key.Length + 8;
+            if (buffer == null || buffer.Length < requiredSize)
+            {
+                buffer = new byte[requiredSize];
+            }
+            
+            buffer[offset] = _msgType;
+            offset += 1;
+
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _session.Length);
+            offset += 4;
+            _session.CopyTo(buffer.AsSpan(offset));
+            offset += _session.Length;
+
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 4), _key.Length);
+            offset += 4;
+            _key.CopyTo(buffer.AsSpan(offset));
+            offset += _key.Length;
+
+            BitConverter.TryWriteBytes(buffer.AsSpan(offset, 8), _value);
+        }
+    }
 }
