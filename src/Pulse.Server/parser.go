@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Pulse.Server/models"
 	"bytes"
 	"encoding/binary"
 )
@@ -33,10 +34,10 @@ func ReadLongArray(buffer *bytes.Buffer) ([]int64, error) {
 	return data, nil
 }
 
-func ParsePulseSessionStart(data []byte) (*PulseSessionStart, error) {
+func ParsePulseSessionStart(data []byte) (*models.PulseSessionStart, error) {
 	var err error
 	buffer := bytes.NewBuffer(data)
-	session := PulseSessionStart{}
+	session := models.PulseSessionStart{}
 
 	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
@@ -70,11 +71,11 @@ func ParsePulseSessionStart(data []byte) (*PulseSessionStart, error) {
 	return &session, nil
 }
 
-func ParsePulseSessionStop(data []byte) (*PulseSessionStop, error) {
+func ParsePulseSessionStop(data []byte) (*models.PulseSessionStop, error) {
 	var err error
 	buffer := bytes.NewBuffer(data)
 
-	session := PulseSessionStop{}
+	session := models.PulseSessionStop{}
 
 	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
@@ -88,10 +89,10 @@ func ParsePulseSessionStop(data []byte) (*PulseSessionStop, error) {
 	return &session, nil
 }
 
-func ParsePulseData(data []byte) (*PulseData, error) {
+func ParsePulseData(data []byte) (*models.PulseData, error) {
 	var err error
 	buffer := bytes.NewBuffer(data)
-	session := PulseData{}
+	session := models.PulseData{}
 
 	if err = binary.Read(buffer, binary.LittleEndian, &session.MsgType); err != nil {
 		return nil, err
@@ -110,10 +111,10 @@ func ParsePulseData(data []byte) (*PulseData, error) {
 	return &session, nil
 }
 
-func ParsePulseCustomData(data []byte) (*UnityPulseCustomData, error) {
+func ParsePulseCustomData(data []byte) (*models.UnityPulseCustomData, error) {
 	buffer := bytes.NewReader(data)
 
-	customData := UnityPulseCustomData{}
+	customData := models.UnityPulseCustomData{}
 
 	if err := binary.Read(buffer, binary.LittleEndian, &customData.MsgType); err != nil {
 		return nil, err

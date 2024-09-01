@@ -1,4 +1,4 @@
-package main
+package models
 
 type PulseSessionStart struct {
 	MsgType    byte
@@ -25,4 +25,5 @@ type UnityPulseCustomData struct {
 	Session []byte
 	Key     []byte
 	Value   int64
+	Time    int64
 }
