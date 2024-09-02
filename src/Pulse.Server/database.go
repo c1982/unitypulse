@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"Pulse.Server/models"
@@ -18,13 +19,18 @@ func NewRepository() (*Repository, error) {
 		return nil, err
 	}
 
+	err = db.AutoMigrate(&models.Sessions{}, &models.Datas{}, &models.CustomDatas{})
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repository{
 		db: db,
 	}, nil
 }
 
-func (r *Repository) StartSession(data *models.PulseSessionStart) {
-	var session = models.Sessions{
+func (r *Repository) StartSession(data *models.PulseSessionStart) error {
+	var session = &models.Sessions{
 		Session:    string(data.Session),
 		Identifier: string(data.Identifier),
 		Version:    string(data.Version),
@@ -33,16 +39,20 @@ func (r *Repository) StartSession(data *models.PulseSessionStart) {
 		StartTime:  time.Now(),
 	}
 
-	r.db.Create(session)
+	return r.db.Create(session).Error
 }
 
-func (r *Repository) StopSession(data *models.PulseSessionStop) {
+func (r *Repository) StopSession(data *models.PulseSessionStop) error {
 	var sessionID = string(data.Session)
-	r.db.Model(&models.Sessions{}).Where("session = ?", sessionID).Update("StopTime", time.Now())
+	return r.db.Model(&models.Sessions{}).Where("session = ?", sessionID).Update("StopTime", time.Now()).Error
 }
 
-func (r *Repository) InsertData(data *models.PulseData) {
-	var datas = models.Datas{
+func (r *Repository) InsertData(data *models.PulseData) error {
+	if len(data.CollectedData) != 23 {
+		return fmt.Errorf("collected data has wrong length: %d", len(data.CollectedData))
+	}
+
+	var datas = &models.Datas{
 		Session:                        string(data.Session),
 		SystemUsedMemory:               data.CollectedData[0],
 		TotalUsedMemory:                data.CollectedData[1],
@@ -69,19 +79,16 @@ func (r *Repository) InsertData(data *models.PulseData) {
 		Fps:                            data.CollectedData[22],
 	}
 
-	r.db.Create(datas)
+	return r.db.Create(datas).Error
 }
 
-func (r *Repository) InsertCustomData(session *models.UnityPulseCustomData) {
-	var customData = models.CustomDatas{
+func (r *Repository) InsertCustomData(session *models.UnityPulseCustomData) error {
+	var customData = &models.CustomDatas{
 		Session: string(session.Session),
 		Key:     string(session.Key),
 		Value:   session.Value,
-		Time:    time.Now().Unix(),
+		Time:    time.Now(),
 	}
 
-	r.db.Create(customData)
-}
-
-func (r *Repository) Close() {
+	return r.db.Create(customData).Error
 }

@@ -51,5 +51,5 @@ type CustomDatas struct {
 	Session string `gorm:"index"`
 	Key     string
 	Value   int64
-	Time    int64
+	Time    time.Time
 }

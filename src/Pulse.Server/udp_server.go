@@ -54,65 +54,94 @@ func (p *PulseUDPServer) handleUDPConnection(conn *net.UDPConn, wg *sync.WaitGro
 	buffer := make([]byte, maxBufferSize)
 
 	for {
-		n, addr, err := conn.ReadFromUDP(buffer)
+		n, _, err := conn.ReadFromUDP(buffer)
 		if err != nil {
 			continue
+
 		}
 
-		go func(data []byte, addr *net.UDPAddr) {
+		go func(data []byte) {
 			msgType := data[0]
 			switch msgType {
 			case 0:
-				p.getPulseSessionStart(data, addr)
+				p.getPulseSessionStart(data)
 				break
 			case 1:
-				p.getPulseData(data, addr)
+				p.getPulseData(data)
 				break
 			case 2:
-				p.getPulseSessionStop(data, addr)
+				p.getPulseSessionStop(data)
 				break
 			case 3:
-				p.getPulseCustomData(data, addr)
+				p.getPulseCustomData(data)
 				break
 			default:
 				log.Warn().Str("service", "udp").Msgf("unknown message type: %d", msgType)
 			}
-		}(buffer[:n], addr)
+		}(buffer[:n])
 	}
 }
 
-func (p *PulseUDPServer) getPulseSessionStart(data []byte, addr *net.UDPAddr) {
+func (p *PulseUDPServer) getPulseSessionStart(data []byte) {
 	s, err := ParsePulseSessionStart(data)
 	if err != nil {
 		log.Err(err).Msgf("parsing error session start: %v", err)
 		return
 	}
 
+	err = p.repository.StartSession(s)
+	if err != nil {
+		log.Err(err).Str("service", "udp").Msgf("error saving session start: %v", err)
+		return
+	}
+
 	log.Info().Str("service", "udp").Msgf("session start: %s", string(s.Session))
 }
 
-func (p *PulseUDPServer) getPulseData(data []byte, addr *net.UDPAddr) {
-	_, err := ParsePulseData(data)
+func (p *PulseUDPServer) getPulseData(data []byte) {
+	pulseData, err := ParsePulseData(data)
 	if err != nil {
 		log.Err(err).Str("service", "udp").Msgf("parsing error pulse data: %v", err)
 		return
 	}
+
+	err = p.repository.InsertData(pulseData)
+	if err != nil {
+		log.Err(err).Str("service", "udp").Msgf("error saving pulse data: %v", err)
+		return
+	}
+
+	log.Info().Str("service", "udp").Msgf("pulse data: %d", len(pulseData.CollectedData))
 }
 
-func (p *PulseUDPServer) getPulseSessionStop(data []byte, addr *net.UDPAddr) {
+func (p *PulseUDPServer) getPulseSessionStop(data []byte) {
 	s, err := ParsePulseSessionStop(data)
 	if err != nil {
 		log.Err(err).Str("service", "udp").Msgf("parsing error session stop: %v", err)
 		return
 	}
 
+	err = p.repository.StopSession(s)
+	if err != nil {
+		log.Err(err).Str("service", "udp").Msgf("error saving session stop: %v", err)
+		return
+	}
+
 	log.Info().Str("service", "udp").Msgf("session stop: %s", string(s.Session))
 }
 
-func (p *PulseUDPServer) getPulseCustomData(data []byte, addr *net.UDPAddr) {
-	_, err := ParsePulseCustomData(data)
+func (p *PulseUDPServer) getPulseCustomData(data []byte) {
+	customData, err := ParsePulseCustomData(data)
 	if err != nil {
 		log.Err(err).Str("service", "udp").Msgf("parsing error custom data: %v", err)
 		return
 	}
+
+	err = p.repository.InsertCustomData(customData)
+	if err != nil {
+		log.Err(err).Str("service", "udp").Msgf("error saving custom data: %v", err)
+		return
+	}
+
+	log.Info().Str("service", "udp").Msgf("custom data: %s", string(customData.Session))
 }
