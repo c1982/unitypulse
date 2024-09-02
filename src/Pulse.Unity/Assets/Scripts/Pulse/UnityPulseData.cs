@@ -15,15 +15,9 @@ namespace Pulse
             _collectedData = data;
         }
         
-        public void Write(ref byte[] buffer)
+        public void Write(byte[] buffer)
         {
             var offset = 0;
-            var requiredSize = 1 + 4 + _session.Length + 4 + 8 * _collectedData.Length;
-            if (buffer == null || buffer.Length < requiredSize)
-            {
-                buffer = new byte[requiredSize];
-            }
-            
             buffer[offset] = _msgType;
             offset += 1;
 
@@ -58,15 +52,9 @@ namespace Pulse
             _value = value;
         }
 
-        public void Write(ref byte[] buffer)
+        public void Write(byte[] buffer)
         {
             var offset = 0;
-            var requiredSize = 1 + 4 + _session.Length + 4 + _key.Length + 8;
-            if (buffer == null || buffer.Length < requiredSize)
-            {
-                buffer = new byte[requiredSize];
-            }
-            
             buffer[offset] = _msgType;
             offset += 1;
 

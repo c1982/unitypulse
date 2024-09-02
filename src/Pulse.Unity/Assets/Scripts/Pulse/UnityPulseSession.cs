@@ -21,15 +21,9 @@ namespace Pulse
             _device = device;
         }
         
-        public void Write(ref byte[] buffer)
+        public void Write(byte[] buffer)
         {
             var offset = 0;
-            var requiredSize = 1 + 4 + _session.Length + 4 + _identifier.Length + 4 + _version.Length + 4 + _platform.Length + 4 + _device.Length;
-            if (buffer == null || buffer.Length < requiredSize)
-            {
-                buffer = new byte[requiredSize];
-            }
-
             buffer[offset] = _msgType;
             offset += 1;
 
@@ -72,12 +66,6 @@ namespace Pulse
         
         public void Write(ref byte[] buffer)
         {
-            int requiredSize = 1 + 4 + _session.Length;
-            if (buffer == null || buffer.Length < requiredSize)
-            {
-                buffer = new byte[requiredSize];
-            }
-
             int offset = 0;
 
             buffer[offset] = _msgType;
