@@ -11,7 +11,9 @@ namespace Pulse
     public sealed class UnityPulse
     {
         private bool _collecting;
-        private byte[] _buffer;
+        private byte[] _collectionBuffer;
+        private byte[] _customDataBuffer;
+        
         private readonly int _secondInterval;
         private readonly int _port;
         private readonly string _host;
@@ -62,7 +64,8 @@ namespace Pulse
         
         public UnityPulse(string host, int port)
         {
-            _buffer = new byte[256];
+            _collectionBuffer = new byte[256];
+            _customDataBuffer = new byte[256];
             
             _host = host;
             _port = port;
@@ -102,79 +105,72 @@ namespace Pulse
         
         public void Collect()
         {
-            if(!_collecting)
+            if (!LetMeCollect())
                 return;
-
-            if (Time.frameCount % (_secondInterval * 60) != 0)
-                return;
-
+            
             FillRecordValues();
-            ClearBuffer(_buffer);
+            ClearCollectionBuffer();
             
             var pulseData = new UnityPulseData(_session, _recorderValues);
-            lock(_buffer)
-            {
-                pulseData.Write(ref _buffer);
-            }
+            pulseData.Write(ref _collectionBuffer);
             
-            _ =  _transport?.SendData(_buffer);
+            _transport?.SendDataAsync(_collectionBuffer);
+            
+            Debug.Log("Data collected:"+ _collectionBuffer.Length);
         }
 
         public void Collect(byte[] key, long value)
         {
-            if(!_collecting)
+            if (!LetMeCollect())
                 return;
             
-            if (Time.frameCount % (_secondInterval * 60) != 0)
-                return;
+            ClearCustomDataBuffer();
+            var pulseCustomData = new UnityPulseCustomData(_session, key, value); 
+            pulseCustomData.Write(ref _customDataBuffer);
             
-            ClearBuffer(_buffer);
+            _transport?.SendDataAsync(_customDataBuffer);
             
-            var pulseCustomData = new UnityPulseCustomData(_session, key, value);
-            lock(_buffer)
-            {
-                pulseCustomData.Write(ref _buffer);
-            }
-            
-            _ =  _transport?.SendData(_buffer);
+            Debug.Log("Custom Data collected:"+ _customDataBuffer.Length);
         }
 
         private void FillRecordValues()
         {
             for (var i = 0; i < _recorders.Count; i++)
-                _recorderValues[i] = _recorders[i].LastValue;
+            {
+                var r = _recorders[i];
+                if (r is { Valid: true, IsRunning: true })
+                {
+                    _recorderValues[i] = _recorders[i].LastValue;
+                }
+                else
+                {
+                    _recorderValues[i] = 0;
+                }
+            }
             
             _recorderValues[^1] = GetFps();
-        }
-
-        private int GetFps()
-        {
-            return Mathf.RoundToInt(1.0f / Time.smoothDeltaTime);
         }
         
         private void StartSession()
         {
-            var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
-
-            lock (_buffer)
-            {
-                start.Write(ref _buffer);
-            }
+            ClearCollectionBuffer();
             
-            _ = _transport.SendData(_buffer);
+            var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
+            start.Write(ref _collectionBuffer);
+            
+            _ = _transport.SendData(_collectionBuffer);
             _collecting = true;
-            ClearBuffer(_buffer);
+            
         }
         
         private void StopSession()
         {
+            ClearCollectionBuffer();
+            
             var stop = new UnityPulseSessionStop(_session);
-            lock (_buffer)
-            {
-                stop.Write(ref _buffer);
-            }
-            _ = _transport.SendData(_buffer);
-            ClearBuffer(_buffer);
+            stop.Write(ref _collectionBuffer);
+            
+            _ = _transport.SendData(_collectionBuffer);
         }
         
         private void StopRecorders()
@@ -186,9 +182,30 @@ namespace Pulse
             }
         }
         
-        private void ClearBuffer(byte[] buffer)
+        private void ClearCollectionBuffer()
         {
-            Array.Clear(buffer, 0, buffer.Length);
+            Array.Clear(_collectionBuffer, 0, _collectionBuffer.Length);
+        }
+        
+        private void ClearCustomDataBuffer()
+        {
+            Array.Clear(_customDataBuffer, 0, _customDataBuffer.Length);
+        }
+        
+        private int GetFps()
+        {
+            return Mathf.RoundToInt(1.0f / Time.smoothDeltaTime);
+        }
+        
+        private bool LetMeCollect()
+        {
+            if (!_collecting)
+                return false;
+            
+            if (Time.frameCount % (_secondInterval * 60) != 0)
+                return false;
+
+            return true;
         }
     }
 }
