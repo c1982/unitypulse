@@ -15,7 +15,7 @@ namespace Pulse
             _collectedData = data;
         }
         
-        public void Write(byte[] buffer)
+        public void Write(ref byte[] buffer)
         {
             var offset = 0;
             buffer[offset] = _msgType;
@@ -52,7 +52,7 @@ namespace Pulse
             _value = value;
         }
 
-        public void Write(byte[] buffer)
+        public void Write(ref byte[] buffer)
         {
             var offset = 0;
             buffer[offset] = _msgType;

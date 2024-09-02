@@ -21,7 +21,7 @@ namespace Pulse
             _device = device;
         }
         
-        public void Write(byte[] buffer)
+        public void Write(ref byte[] buffer)
         {
             var offset = 0;
             buffer[offset] = _msgType;

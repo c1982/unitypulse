@@ -11,7 +11,7 @@ namespace Pulse
     public sealed class UnityPulse
     {
         private bool _collecting;
-        private readonly int _secondInterval;
+        private readonly int _secondsInterval;
         private readonly int _port;
         private readonly int _targetFrameRate;
         private readonly string _host;
@@ -70,7 +70,7 @@ namespace Pulse
         {
             _host = host;
             _port = port;
-            _secondInterval = 1;
+            _secondsInterval = 1;
             _collecting = false;
             _targetFrameRate = targetFrameRate;
             _identifier = Encoding.UTF8.GetBytes(Application.identifier);
@@ -102,50 +102,62 @@ namespace Pulse
 
         public void Collect()
         {
-            if (!CanCollect()) return;
+            if (!CanCollect()) 
+                return;
 
             FillRecordValues();
-
-            var bufferSize = CalculateBufferSize(_session.Length, _recorderValues.Length * LongSize);
-            SendData(bufferSize, (buffer) =>
-            {
-                var pulseData = new UnityPulseData(_session, _recorderValues);
-                pulseData.Write(buffer);
-            });
+            
+            var bufferSize = ByteSize + IntSize + _session.Length + IntSize + _recorderValues.Length * LongSize;
+            var buffer = _collectedPool.Get(bufferSize);
+            
+            var pulseData = new UnityPulseData(_session, _recorderValues);
+            pulseData.Write(ref buffer);
+            
+            _transport?.SendData(buffer);
+            _collectedPool.Return(buffer);
         }
 
         public void Collect(byte[] key, long value)
         {
-            if (!CanCollect()) return;
-
-            var bufferSize = CalculateBufferSize(_session.Length, key.Length, LongSize);
-            SendData(bufferSize, (buffer) =>
-            {
-                var pulseCustomData = new UnityPulseCustomData(_session, key, value);
-                pulseCustomData.Write(buffer);
-            });
+            if (!CanCollect()) 
+                return;
+            
+            var bufferSize = ByteSize + IntSize + _session.Length + IntSize + key.Length + LongSize;
+            var buffer = _collectedPool.Get(bufferSize);
+            
+            var pulseCustomData = new UnityPulseCustomData(_session, key, value);
+            pulseCustomData.Write(ref buffer);
+            
+            _transport?.SendData(buffer);
+            _collectedPool.Return(buffer);
         }
 
         private void StartSession()
         {
-            var bufferSize = CalculateBufferSize(_session.Length, _identifier.Length, _version.Length, _platform.Length, _device.Length);
-            SendData(bufferSize, (buffer) =>
-            {
-                var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
-                start.Write(buffer);
-            });
-
+            var bufferSize = ByteSize + IntSize + _session.Length + IntSize + _identifier.Length + IntSize + _version.Length + IntSize + _platform.Length + IntSize + _device.Length;
+            var buffer = _collectedPool.Get(bufferSize);
+            
+            var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
+            start.Write(ref buffer);
+            
+            _transport?.SendData(buffer);
+            _collectedPool.Return(buffer);
+            
             _collecting = true;
         }
 
         private void StopSession()
         {
-            var bufferSize = CalculateBufferSize(_session.Length);
-            SendData(bufferSize, (buffer) =>
-            {
-                var stop = new UnityPulseSessionStop(_session);
-                stop.Write(ref buffer);
-            });
+            var bufferSize = ByteSize + IntSize + _session.Length;
+            var buffer = _collectedPool.Get(bufferSize);
+            
+            var stop = new UnityPulseSessionStop(_session);
+            stop.Write(ref buffer);
+            
+            _transport?.SendData(buffer);
+            _collectedPool.Return(buffer);
+
+            _collecting = false;
         }
 
         private void StartRecorders()
@@ -173,7 +185,14 @@ namespace Pulse
             for (var i = 0; i < _recorders.Count; i++)
             {
                 var r = _recorders[i];
-                _recorderValues[i] = r is { Valid: true, IsRunning: true } ? r.LastValue : 0;
+                if (r is { Valid: true, IsRunning: true })
+                {
+                    _recorderValues[i] = _recorders[i].LastValue;
+                }
+                else
+                {
+                    _recorderValues[i] = 0;
+                }
             }
 
             _recorderValues[^1] = GetFps();
@@ -186,20 +205,8 @@ namespace Pulse
 
         private bool CanCollect()
         {
-            return _collecting && Time.frameCount % (_secondInterval * _targetFrameRate) == 0;
+            return _collecting && Time.frameCount % (_secondsInterval * _targetFrameRate) == 0;
         }
-
-        private int CalculateBufferSize(params int[] lengths)
-        {
-            return ByteSize + lengths.Sum() + lengths.Length * IntSize;
-        }
-
-        private void SendData(int bufferSize, Action<byte[]> writeAction)
-        {
-            var buffer = _collectedPool.Get(bufferSize);
-            writeAction(buffer);
-            _transport?.SendData(buffer);
-            _collectedPool.Return(buffer);
-        }
+        
     }
 }
