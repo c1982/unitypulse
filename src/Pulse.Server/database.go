@@ -93,8 +93,17 @@ func (r *Repository) InsertCustomData(session *models.UnityPulseCustomData) erro
 	return r.db.Create(customData).Error
 }
 
-func (r *Repository) GetSessions() ([]models.Sessions, error) {
+func (r *Repository) GetSessions(offset, limit int) ([]models.Sessions, error) {
 	var sessions []models.Sessions
-	err := r.db.Find(&sessions).Error
+	err := r.db.Offset(offset).Limit(limit).Find(&sessions).Error
 	return sessions, err
+}
+
+func (r *Repository) TotalSessionCount() (int64, error) {
+	var totalRecords int64
+	if err := r.db.Model(&models.Sessions{}).Count(&totalRecords).Error; err != nil {
+		return totalRecords, err
+	}
+
+	return totalRecords, nil
 }

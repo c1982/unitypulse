@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"net/http"
 )
 
 type PulseWebServer struct {
@@ -11,6 +10,7 @@ type PulseWebServer struct {
 	router      *gin.Engine
 	routerGroup *gin.RouterGroup
 	repository  *Repository
+	controller  *PulseController
 }
 
 func NewPulseWebServer(addr string, repositoy *Repository) *PulseWebServer {
@@ -18,27 +18,18 @@ func NewPulseWebServer(addr string, repositoy *Repository) *PulseWebServer {
 	gin.DisableConsoleColor()
 	apiV1 := router.Group("/api/v1")
 
+	controller := NewPulseController(repositoy, router)
 	return &PulseWebServer{
 		router:      router,
 		routerGroup: apiV1,
 		addr:        addr,
 		repository:  repositoy,
+		controller:  controller,
 	}
 }
 
 func (p *PulseWebServer) RegisterRoutes() {
-	p.routerGroup.GET("/sessions", p.SessionHandler)
-}
-
-func (p *PulseWebServer) SessionHandler(c *gin.Context) {
-	sessions, err := p.repository.GetSessions()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get sessions")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get sessions"})
-		return
-	}
-
-	c.JSON(http.StatusOK, sessions)
+	p.routerGroup.GET("/sessions", p.controller.SessionHandler)
 }
 
 func (p *PulseWebServer) Start() error {
