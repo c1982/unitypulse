@@ -16,7 +16,7 @@ type PulseWebServer struct {
 func NewPulseWebServer(addr string, repositoy *Repository) *PulseWebServer {
 	router := gin.Default()
 	gin.DisableConsoleColor()
-	apiV1 := router.Group("/v1")
+	apiV1 := router.Group("/api/v1")
 
 	return &PulseWebServer{
 		router:      router,
@@ -27,11 +27,18 @@ func NewPulseWebServer(addr string, repositoy *Repository) *PulseWebServer {
 }
 
 func (p *PulseWebServer) RegisterRoutes() {
-	p.routerGroup.POST("/session", p.SessionHandler)
+	p.routerGroup.GET("/sessions", p.SessionHandler)
 }
 
 func (p *PulseWebServer) SessionHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	sessions, err := p.repository.GetSessions()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get sessions")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get sessions"})
+		return
+	}
+
+	c.JSON(http.StatusOK, sessions)
 }
 
 func (p *PulseWebServer) Start() error {

@@ -92,3 +92,9 @@ func (r *Repository) InsertCustomData(session *models.UnityPulseCustomData) erro
 
 	return r.db.Create(customData).Error
 }
+
+func (r *Repository) GetSessions() ([]models.Sessions, error) {
+	var sessions []models.Sessions
+	err := r.db.Find(&sessions).Error
+	return sessions, err
+}

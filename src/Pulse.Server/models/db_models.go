@@ -7,49 +7,49 @@ import (
 )
 
 type Sessions struct {
-	gorm.Model
-	ID         uint
-	Session    string `gorm:"index"`
-	Identifier string
-	Version    string
-	Platform   string
-	Device     string
-	StartTime  time.Time
-	StopTime   time.Time
+	gorm.Model `json:"-"`
+	ID         uint      `json:"id"`
+	Session    string    `json:"session", gorm:"index"`
+	Identifier string    `json:"identifier"`
+	Version    string    `json:"version"`
+	Platform   string    `json:"platform"`
+	Device     string    `json:"device"`
+	StartTime  time.Time `json:"start_time"`
+	StopTime   time.Time `json:"stop_time"`
 }
 
 type Datas struct {
-	gorm.Model
-	Session                        string `gorm:"index"`
-	SystemUsedMemory               int64
-	TotalUsedMemory                int64
-	GCUsedMemory                   int64
-	AudioUsedMemory                int64
-	VideoUsedMemory                int64
-	ProfilerUsedMemory             int64
-	SetPassCallsCount              int64
-	DrawCallsCount                 int64
-	TotalBatchesCount              int64
-	TrianglesCount                 int64
-	VerticesCount                  int64
-	RenderTexturesCount            int64
-	RenderTexturesBytes            int64
-	RenderTexturesChangesCount     int64
-	UsedBuffersCount               int64
-	UsedBuffersBytes               int64
-	UsedShadersCount               int64
-	VertexBufferUploadInFrameCount int64
-	VertexBufferUploadInFrameBytes int64
-	IndexBufferUploadInFrameCount  int64
-	IndexBufferUploadInFrameBytes  int64
-	ShadowCastersCount             int64
-	Fps                            int64
+	gorm.Model                     `json:"-"`
+	Session                        string `json:"session", gorm:"index"`
+	SystemUsedMemory               int64  `json:"system_used_memory"`
+	TotalUsedMemory                int64  `json:"total_used_memory"`
+	GCUsedMemory                   int64  `json:"gc_used_memory"`
+	AudioUsedMemory                int64  `json:"audio_used_memory"`
+	VideoUsedMemory                int64  `json:"video_used_memory"`
+	ProfilerUsedMemory             int64  `json:"profiler_used_memory"`
+	SetPassCallsCount              int64  `json:"set_pass_calls_count"`
+	DrawCallsCount                 int64  `json:"draw_calls_count"`
+	TotalBatchesCount              int64  `json:"total_batches_count"`
+	TrianglesCount                 int64  `json:"triangles_count"`
+	VerticesCount                  int64  `json:"vertices_count"`
+	RenderTexturesCount            int64  `json:"render_textures_count"`
+	RenderTexturesBytes            int64  `json:"render_textures_bytes"`
+	RenderTexturesChangesCount     int64  `json:"render_textures_changes_count"`
+	UsedBuffersCount               int64  `json:"used_buffers_count"`
+	UsedBuffersBytes               int64  `json:"used_buffers_bytes"`
+	UsedShadersCount               int64  `json:"used_shaders_count"`
+	VertexBufferUploadInFrameCount int64  `json:"vertex_buffer_upload_in_frame_count"`
+	VertexBufferUploadInFrameBytes int64  `json:"vertex_buffer_upload_in_frame_bytes"`
+	IndexBufferUploadInFrameCount  int64  `json:"index_buffer_upload_in_frame_count"`
+	IndexBufferUploadInFrameBytes  int64  `json:"index_buffer_upload_in_frame_bytes"`
+	ShadowCastersCount             int64  `json:"shadow_casters_count"`
+	Fps                            int64  `json:"fps"`
 }
 
 type CustomDatas struct {
-	gorm.Model
-	Session string `gorm:"index"`
-	Key     string
-	Value   int64
-	Time    time.Time
+	gorm.Model `json:"-"`
+	Session    string    `json:"session", gorm:"index"`
+	Key        string    `json:"key"`
+	Value      int64     `json:"value"`
+	Time       time.Time `json:"time"`
 }
