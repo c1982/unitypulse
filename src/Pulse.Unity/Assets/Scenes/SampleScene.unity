@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 216225195}
   - component: {fileID: 216225194}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: PulseScript
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

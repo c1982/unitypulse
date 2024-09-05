@@ -11,10 +11,10 @@ namespace Pulse
     public sealed class UnityPulse
     {
         private bool _collecting;
-        private readonly int _secondsInterval;
-        private readonly int _port;
-        private readonly int _targetFrameRate;
-        private readonly string _host;
+        private int _port;
+        private int _targetFrameRate;
+        private float _nextCollectTime;
+        private string _host;
         private readonly byte[] _session;
         private readonly byte[] _identifier;
         private readonly byte[] _version;
@@ -65,46 +65,62 @@ namespace Pulse
                 }
             }
         };
-
-        public UnityPulse(string host, int port, int targetFrameRate)
+        
+        public static UnityPulse Instance => _instance ??= new UnityPulse();
+        private static UnityPulse _instance;
+        
+        public UnityPulse()
         {
-            _host = host;
-            _port = port;
-            _secondsInterval = 1;
-            _collecting = false;
-            _targetFrameRate = targetFrameRate;
+            var fpsMetric = 1;
+            
             _identifier = Encoding.UTF8.GetBytes(Application.identifier);
             _version = Encoding.UTF8.GetBytes(Application.version);
             _platform = Encoding.UTF8.GetBytes(Application.platform.ToString());
             _device = Encoding.UTF8.GetBytes(SystemInfo.deviceModel);
             _session = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
-
-            var fpsMetric = 1;
+            
             var recorderCount = _profileMetrics.Sum(x => x.Value.Length);
             _recorderValues = new long[recorderCount + fpsMetric];
             _recorders = new List<ProfilerRecorder>(recorderCount);
         }
-
-        public void Start()
+        
+        public UnityPulse SetTargetFrameRate(int targetFrameRate)
         {
-            StartRecorders();
+            _targetFrameRate = targetFrameRate;
+            return this;
+        }
+
+        public void Start(string host, int port)
+        {
+            if(string.IsNullOrEmpty(host))
+                throw new ArgumentException("Host is empty");
+            
+            if(port <= 0)
+                throw new ArgumentException("Port is invalid");
+            
+            _host = host;
+            _port = port;
             _transport = new UdpTransport(_host, _port);
+            
+            StartRecorders();
             StartSession();
         }
 
         public void Stop()
         {
             _collecting = false;
+            
             StopSession();
             StopRecorders();
+            
             _transport?.Dispose();
         }
 
         public void Collect()
         {
-            if (!CanCollect()) 
+            if (!CanCollect())
                 return;
-
+            
             FillRecordValues();
             
             var bufferSize = ByteSize + IntSize + _session.Length + IntSize + _recorderValues.Length * LongSize;
@@ -124,7 +140,6 @@ namespace Pulse
             
             var bufferSize = ByteSize + IntSize + _session.Length + IntSize + key.Length + LongSize;
             var buffer = _collectedPool.Get(bufferSize);
-            
             var pulseCustomData = new UnityPulseCustomData(_session, key, value);
             pulseCustomData.Write(ref buffer);
             
@@ -194,7 +209,7 @@ namespace Pulse
                     _recorderValues[i] = 0;
                 }
             }
-
+            
             _recorderValues[^1] = GetFps();
         }
 
@@ -205,8 +220,10 @@ namespace Pulse
 
         private bool CanCollect()
         {
-            return _collecting && Time.frameCount % (_secondsInterval * _targetFrameRate) == 0;
+            if (!_collecting)
+                return false;
+            
+            return Time.frameCount % _targetFrameRate == 0;
         }
-        
     }
 }
