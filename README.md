@@ -21,7 +21,10 @@ UnityPulse is a benchmarking tool designed to facilitate continuous performance 
 
 ### Installation
 
-WIP
+0. Open Unity Packer Manager
+1. Add package from git URL
+2. Enter this URL:
+    https://github.com/c1982/unitypulse.git?path=/src/Pulse.Unity/Assets/Scripts/Pulse   
 
 ### Usage
 
