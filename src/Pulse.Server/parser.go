@@ -1,9 +1,11 @@
 package main
 
 import (
-	"Pulse.Server/models"
 	"bytes"
 	"encoding/binary"
+	"fmt"
+
+	"Pulse.Server/models"
 )
 
 func ReadBytes(buffer *bytes.Buffer) ([]byte, error) {
@@ -12,6 +14,11 @@ func ReadBytes(buffer *bytes.Buffer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if length < 0 {
+		return nil, fmt.Errorf("invalid length: %d", length)
+	}
+
 	data := make([]byte, length)
 	err = binary.Read(buffer, binary.LittleEndian, &data)
 	if err != nil {
@@ -25,6 +32,9 @@ func ReadLongArray(buffer *bytes.Buffer) ([]int64, error) {
 	err := binary.Read(buffer, binary.LittleEndian, &length)
 	if err != nil {
 		return nil, err
+	}
+	if length < 0 {
+		return nil, fmt.Errorf("invalid length: %d", length)
 	}
 	data := make([]int64, length)
 	err = binary.Read(buffer, binary.LittleEndian, &data)
