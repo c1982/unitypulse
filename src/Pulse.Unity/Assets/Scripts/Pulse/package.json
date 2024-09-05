@@ -1,14 +1,21 @@
 {
   "name": "com.mage.unitypulse",
   "displayName": "Unity Pulse",
-  "version": "2.6.0",
+  "version": "1.0.0",
   "unity": "2018.4",
   "description": "Unity Continuous Benchmarking",
+  "documentationUrl": "https://github.com/c1982/unitypulse/blob/main/README.md",
+  "licensesUrl": "https://github.com/c1982/unitypulse/blob/main/LICENSE",
   "keywords": [
     "Profiling",
     "Performance"
   ],
   "license": "MIT",
   "category": "Scripting",
+  "author": {
+    "name": "Oguzhan",
+    "email": "aspsrc@gmail.com",
+    "url": "https://blog.oguzhan.info"
+  },
   "dependencies": {}
 }
