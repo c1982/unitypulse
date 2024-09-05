@@ -28,4 +28,41 @@ UnityPulse is a benchmarking tool designed to facilitate continuous performance 
 
 ### Usage
 
-WIP
+```csharp
+using Pulse;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
+
+namespace Example
+{
+    public class ExampleController : MonoBehaviour
+    {
+        private UnityPulse _pulse;
+        private readonly byte[] _updateTimeKeyName = System.Text.Encoding.UTF8.GetBytes("update_time");
+        private long _updateTime;
+        
+        public void Awake()
+        {
+            _pulse = UnityPulse.Instance.SetTargetFrameRate(Application.targetFrameRate);
+        }
+        
+        public void Start()
+        {
+            _pulse.Start("127.0.0.1",7771);
+            Debug.Log("UnityPulse started");
+        }
+        
+        public void Update()
+        {
+            _pulse.Collect();
+            _pulse.Collect(_updateTimeKeyName, Random.Range(1,100));
+        }
+        
+        public void OnDestroy()
+        {
+            _pulse.Stop();
+            Debug.Log("UnityPulse stopped");
+        }
+    }
+}
+```
