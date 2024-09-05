@@ -20,7 +20,7 @@ type PulseData struct {
 	CollectedData []int64
 }
 
-type UnityPulseCustomData struct {
+type PulseCustomData struct {
 	MsgType byte
 	Session []byte
 	Key     []byte

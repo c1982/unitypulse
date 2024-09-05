@@ -54,3 +54,24 @@ func (p *PulseController) SessionHandler(c *gin.Context) {
 		"sessions":    sessions,
 	})
 }
+
+func (p *PulseController) DataListHandler(c *gin.Context) {
+	sessionID := c.Query("session_id")
+
+	if sessionID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session_id is required"})
+		return
+	}
+
+	dataList, err := p.repository.GetDataList(sessionID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get data list")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get data list"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"session_id": sessionID,
+		"data":       dataList,
+	})
+}

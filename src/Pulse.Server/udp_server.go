@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/rs/zerolog/log"
 	"net"
-	"sync"
 )
 
 const (
@@ -37,48 +36,39 @@ func (p *PulseUDPServer) Start() {
 	}
 	defer conn.Close()
 
-	var wg sync.WaitGroup
-
 	log.Info().Str("service", "udp").Msgf("UDP server Listening on %s", port)
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go p.handleUDPConnection(conn, &wg)
-	}
+	p.handleUDPConnection(conn)
 
-	wg.Wait()
 	log.Info().Str("service", "udp").Msgf("UDP server stop listening")
 }
 
-func (p *PulseUDPServer) handleUDPConnection(conn *net.UDPConn, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (p *PulseUDPServer) handleUDPConnection(conn *net.UDPConn) {
 	buffer := make([]byte, maxBufferSize)
 
 	for {
 		n, _, err := conn.ReadFromUDP(buffer)
 		if err != nil {
 			continue
-
 		}
 
-		go func(data []byte) {
-			msgType := data[0]
-			switch msgType {
-			case 0:
-				p.getPulseSessionStart(data)
-				break
-			case 1:
-				p.getPulseData(data)
-				break
-			case 2:
-				p.getPulseSessionStop(data)
-				break
-			case 3:
-				p.getPulseCustomData(data)
-				break
-			default:
-				log.Warn().Str("service", "udp").Msgf("unknown message type: %d", msgType)
-			}
-		}(buffer[:n])
+		data := buffer[:n]
+		msgType := data[0]
+		switch msgType {
+		case 0:
+			p.getPulseSessionStart(data)
+			break
+		case 1:
+			p.getPulseData(data)
+			break
+		case 2:
+			p.getPulseSessionStop(data)
+			break
+		case 3:
+			p.getPulseCustomData(data)
+			break
+		default:
+			log.Warn().Str("service", "udp").Msgf("unknown message type: %d", msgType)
+		}
 	}
 }
 
@@ -95,7 +85,8 @@ func (p *PulseUDPServer) getPulseSessionStart(data []byte) {
 		return
 	}
 
-	log.Info().Str("service", "udp").Msgf("session start: %s", string(s.Session))
+	log.Info().Str("service", "udp").Msgf("session start: %s %s %s %s %s",
+		string(s.Session), string(s.Identifier), string(s.Version), string(s.Platform), string(s.Device))
 }
 
 func (p *PulseUDPServer) getPulseData(data []byte) {
@@ -110,8 +101,6 @@ func (p *PulseUDPServer) getPulseData(data []byte) {
 		log.Err(err).Str("service", "udp").Msgf("error saving pulse data: %v", err)
 		return
 	}
-
-	log.Info().Str("service", "udp").Msgf("pulse data: %d", len(pulseData.CollectedData))
 }
 
 func (p *PulseUDPServer) getPulseSessionStop(data []byte) {
@@ -142,6 +131,4 @@ func (p *PulseUDPServer) getPulseCustomData(data []byte) {
 		log.Err(err).Str("service", "udp").Msgf("error saving custom data: %v", err)
 		return
 	}
-
-	log.Info().Str("service", "udp").Msgf("custom data: %s", string(customData.Session))
 }

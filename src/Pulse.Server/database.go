@@ -36,7 +36,7 @@ func (r *Repository) StartSession(data *models.PulseSessionStart) error {
 		Version:    string(data.Version),
 		Platform:   string(data.Platform),
 		Device:     string(data.Device),
-		StartTime:  time.Now(),
+		StartTime:  time.Now().Unix(),
 	}
 
 	return r.db.Create(session).Error
@@ -52,8 +52,10 @@ func (r *Repository) InsertData(data *models.PulseData) error {
 		return fmt.Errorf("collected data has wrong length: %d", len(data.CollectedData))
 	}
 
+	var timestamp = time.Now().Unix()
 	var datas = &models.Datas{
 		Session:                        string(data.Session),
+		Timestamp:                      timestamp,
 		SystemUsedMemory:               data.CollectedData[0],
 		TotalUsedMemory:                data.CollectedData[1],
 		GCUsedMemory:                   data.CollectedData[2],
@@ -82,12 +84,12 @@ func (r *Repository) InsertData(data *models.PulseData) error {
 	return r.db.Create(datas).Error
 }
 
-func (r *Repository) InsertCustomData(session *models.UnityPulseCustomData) error {
+func (r *Repository) InsertCustomData(session *models.PulseCustomData) error {
 	var customData = &models.CustomDatas{
-		Session: string(session.Session),
-		Key:     string(session.Key),
-		Value:   session.Value,
-		Time:    time.Now(),
+		Session:   string(session.Session),
+		Key:       string(session.Key),
+		Value:     session.Value,
+		Timestamp: time.Now().Unix(),
 	}
 
 	return r.db.Create(customData).Error
@@ -106,4 +108,10 @@ func (r *Repository) TotalSessionCount() (int64, error) {
 	}
 
 	return totalRecords, nil
+}
+
+func (r *Repository) GetDataList(sessionID string) ([]models.Datas, error) {
+	var dataList []models.Datas
+	err := r.db.Where("session = ?", sessionID).Find(&dataList).Error
+	return dataList, err
 }

@@ -111,10 +111,10 @@ func ParsePulseData(data []byte) (*models.PulseData, error) {
 	return &session, nil
 }
 
-func ParsePulseCustomData(data []byte) (*models.UnityPulseCustomData, error) {
+func ParsePulseCustomData(data []byte) (*models.PulseCustomData, error) {
 	buffer := bytes.NewReader(data)
 
-	customData := models.UnityPulseCustomData{}
+	customData := models.PulseCustomData{}
 
 	if err := binary.Read(buffer, binary.LittleEndian, &customData.MsgType); err != nil {
 		return nil, err

@@ -1,26 +1,24 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type Sessions struct {
 	gorm.Model `json:"-"`
-	ID         uint      `json:"id"`
-	Session    string    `json:"session", gorm:"index"`
-	Identifier string    `json:"identifier"`
-	Version    string    `json:"version"`
-	Platform   string    `json:"platform"`
-	Device     string    `json:"device"`
-	StartTime  time.Time `json:"start_time"`
-	StopTime   time.Time `json:"stop_time"`
+	Session    string `json:"session", gorm:"index"`
+	Identifier string `json:"identifier"`
+	Version    string `json:"version"`
+	Platform   string `json:"platform"`
+	Device     string `json:"device"`
+	StartTime  int64  `json:"start_time"`
+	StopTime   int64  `json:"stop_time"`
 }
 
 type Datas struct {
 	gorm.Model                     `json:"-"`
-	Session                        string `json:"session", gorm:"index"`
+	Session                        string `json:"-", gorm:"index"`
+	Timestamp                      int64  `json:"timestamp"`
 	SystemUsedMemory               int64  `json:"system_used_memory"`
 	TotalUsedMemory                int64  `json:"total_used_memory"`
 	GCUsedMemory                   int64  `json:"gc_used_memory"`
@@ -48,8 +46,8 @@ type Datas struct {
 
 type CustomDatas struct {
 	gorm.Model `json:"-"`
-	Session    string    `json:"session", gorm:"index"`
-	Key        string    `json:"key"`
-	Value      int64     `json:"value"`
-	Time       time.Time `json:"time"`
+	Session    string `json:"session", gorm:"index"`
+	Key        string `json:"key"`
+	Value      int64  `json:"value"`
+	Timestamp  int64  `json:"time"`
 }
