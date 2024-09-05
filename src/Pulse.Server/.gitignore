@@ -1,2 +1,4 @@
 vendor
 pulse.db
+deploy.sh
+pulse

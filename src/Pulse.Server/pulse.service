@@ -1,0 +1,14 @@
+[Unit]
+Description=Unity Pulse Service
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+ExecStart=/opt/pulse/pulse
+WorkingDirectory=/opt/pulse
+Restart=always
+RestartSec=3
+LimitNOFILE=131072
+
+[Install]
+WantedBy=multi-user.target
