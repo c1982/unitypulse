@@ -2,7 +2,7 @@
 
 > docker run -rm -d -p 3000:3000 --name=grafana -v ./pulse.db:/var/lib/grafana/sqlite/pulse.db grafana/grafana-oss
 
-### Compile with OSX
+### Compile on OSX for SQLite
 
 Compile for ARM64 Linux with
 

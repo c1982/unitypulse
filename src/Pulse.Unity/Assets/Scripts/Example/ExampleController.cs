@@ -19,7 +19,7 @@ namespace Example
         
         public void Start()
         {
-            UnityPulse.Instance.Start("35.156.61.82",7771);
+            UnityPulse.Instance.Start("127.0.0.1",7771);
             Debug.Log("UnityPulse started");
         }
         

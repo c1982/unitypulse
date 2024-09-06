@@ -7,7 +7,7 @@ namespace Pulse.Unity
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Init()
         {
-            UnityPulse.Instance.SetTargetFrameRate(Application.targetFrameRate);
+            UnityPulse.Instance.SetInterval(1f);
         }
     }
 }

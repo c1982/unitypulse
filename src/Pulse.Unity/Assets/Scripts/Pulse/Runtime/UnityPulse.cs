@@ -11,11 +11,12 @@ namespace Pulse.Unity
     public sealed class UnityPulse
     {
         private bool _collecting;
+        private float _collectInterval;
         private int _port;
-        private int _targetFrameRate;
-        private float _nextCollectTime;
+        private float _lastCollectTime;
         private string _host;
-        private readonly byte[] _session;
+        
+        private byte[] _session;
         private readonly byte[] _identifier;
         private readonly byte[] _version;
         private readonly byte[] _platform;
@@ -68,8 +69,8 @@ namespace Pulse.Unity
         
         public static UnityPulse Instance => _instance ??= new UnityPulse();
         private static UnityPulse _instance;
-        
-        public UnityPulse()
+
+        private UnityPulse()
         {
             var fpsMetric = 1;
             
@@ -77,19 +78,18 @@ namespace Pulse.Unity
             _version = Encoding.UTF8.GetBytes(Application.version);
             _platform = Encoding.UTF8.GetBytes(Application.platform.ToString());
             _device = Encoding.UTF8.GetBytes(SystemInfo.deviceModel);
-            _session = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
             
             var recorderCount = _profileMetrics.Sum(x => x.Value.Length);
             _recorderValues = new long[recorderCount + fpsMetric];
             _recorders = new List<ProfilerRecorder>(recorderCount);
         }
         
-        public UnityPulse SetTargetFrameRate(int targetFrameRate)
+        public UnityPulse SetInterval(float intervalSeconds)
         {
-            _targetFrameRate = targetFrameRate;
+            _collectInterval = intervalSeconds;
             return this;
         }
-
+        
         public void Start(string host, int port)
         {
             if(string.IsNullOrEmpty(host))
@@ -135,9 +135,6 @@ namespace Pulse.Unity
 
         public void Collect(byte[] key, long value)
         {
-            if (!CanCollect()) 
-                return;
-            
             var bufferSize = ByteSize + IntSize + _session.Length + IntSize + key.Length + LongSize;
             var buffer = _collectedPool.Get(bufferSize);
             var pulseCustomData = new UnityPulseCustomData(_session, key, value);
@@ -149,6 +146,8 @@ namespace Pulse.Unity
 
         private void StartSession()
         {
+            _session = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
+            
             var bufferSize = ByteSize + IntSize + _session.Length + IntSize + _identifier.Length + IntSize + _version.Length + IntSize + _platform.Length + IntSize + _device.Length;
             var buffer = _collectedPool.Get(bufferSize);
             
@@ -222,8 +221,13 @@ namespace Pulse.Unity
         {
             if (!_collecting)
                 return false;
+
+            if (!(Time.realtimeSinceStartup - _lastCollectTime >= _collectInterval)) 
+                return false;
             
-            return Time.frameCount % _targetFrameRate == 0;
+            _lastCollectTime = Time.realtimeSinceStartup;
+            return true;
         }
+        
     }
 }
