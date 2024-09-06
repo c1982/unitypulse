@@ -135,6 +135,9 @@ namespace Pulse.Unity
 
         public void Collect(byte[] key, long value)
         {
+            if (!CanCollect())
+                return;
+            
             var bufferSize = ByteSize + IntSize + _session.Length + IntSize + key.Length + LongSize;
             var buffer = _collectedPool.Get(bufferSize);
             var pulseCustomData = new UnityPulseCustomData(_session, key, value);
@@ -196,9 +199,6 @@ namespace Pulse.Unity
 
         private void FillRecordValues()
         {
-            if (_recorderValues.Length != _recorders.Count + 1)
-                return;
-            
             for (var i = 0; i < _recorders.Count; i++)
             {
                 var r = _recorders[i];
