@@ -196,6 +196,9 @@ namespace Pulse.Unity
 
         private void FillRecordValues()
         {
+            if (_recorderValues.Length != _recorders.Count + 1)
+                return;
+            
             for (var i = 0; i < _recorders.Count; i++)
             {
                 var r = _recorders[i];
