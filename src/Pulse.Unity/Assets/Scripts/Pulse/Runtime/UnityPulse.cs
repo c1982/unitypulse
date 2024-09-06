@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Pulse.Transports;
+using Pulse.Unity.Transports;
 using Unity.Profiling;
 using UnityEngine;
 
-namespace Pulse
+namespace Pulse.Unity
 {
     public sealed class UnityPulse
     {

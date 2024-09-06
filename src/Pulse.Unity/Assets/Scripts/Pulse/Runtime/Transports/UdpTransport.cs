@@ -1,7 +1,7 @@
 using System;
 using System.Net.Sockets;
 
-namespace Pulse.Transports
+namespace Pulse.Unity.Transports
 {
     internal class UdpTransport : IDisposable
     {

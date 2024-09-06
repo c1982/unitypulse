@@ -1,6 +1,6 @@
 using System;
 
-namespace Pulse
+namespace Pulse.Unity
 {
     internal readonly struct UnityPulseData
     {

@@ -1,8 +1,8 @@
-namespace Pulse
+namespace Pulse.Unity
 {
     using System.Buffers;
     
-    public class UnityPulseByteArrayPool
+    internal class UnityPulseByteArrayPool
     {
         private readonly ArrayPool<byte> _pool;
         private readonly object _lock = new();

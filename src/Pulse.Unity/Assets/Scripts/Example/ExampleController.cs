@@ -1,4 +1,4 @@
-using Pulse;
+using Pulse.Unity;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -6,7 +6,6 @@ namespace Example
 {
     public class ExampleController : MonoBehaviour
     {
-        private UnityPulse _pulse;
         private GameObject[] _cubes;
         private readonly byte[] _updateTimeKeyName = System.Text.Encoding.UTF8.GetBytes("update_time");
         private long _updateTime;
@@ -14,14 +13,13 @@ namespace Example
         public void Awake()
         {
             Application.targetFrameRate = 60;
-            _pulse = UnityPulse.Instance.SetTargetFrameRate(Application.targetFrameRate);
 
             InstantiateRandomCube();
         }
         
         public void Start()
         {
-            _pulse.Start("127.0.0.1",7771);
+            UnityPulse.Instance.Start("35.156.61.82",7771);
             Debug.Log("UnityPulse started");
         }
         
@@ -30,13 +28,13 @@ namespace Example
             for (var i = 0; i < 10; i++)
                 RandomizePosition(_cubes[i]);
             
-            _pulse.Collect();
-            _pulse.Collect(_updateTimeKeyName, Random.Range(1,100));
+            UnityPulse.Instance.Collect();
+            UnityPulse.Instance.Collect(_updateTimeKeyName, Random.Range(1,100));
         }
         
         public void OnDestroy()
         {
-            _pulse.Stop();
+            UnityPulse.Instance.Stop();
             Debug.Log("UnityPulse stopped");
         }
         
