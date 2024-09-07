@@ -43,32 +43,34 @@ func (p *PulseUDPServer) Start() {
 }
 
 func (p *PulseUDPServer) handleUDPConnection(conn *net.UDPConn) {
-	buffer := make([]byte, maxBufferSize)
 
 	for {
+		buffer := make([]byte, maxBufferSize)
 		n, _, err := conn.ReadFromUDP(buffer)
 		if err != nil {
 			continue
 		}
 
-		data := buffer[:n]
-		msgType := data[0]
-		switch msgType {
-		case 0:
-			p.getPulseSessionStart(data)
-			break
-		case 1:
-			p.getPulseData(data)
-			break
-		case 2:
-			p.getPulseSessionStop(data)
-			break
-		case 3:
-			p.getPulseCustomData(data)
-			break
-		default:
-			log.Warn().Str("service", "udp").Msgf("unknown message type: %d", msgType)
-		}
+		go func(data []byte) {
+			msgType := data[0]
+			log.Info().Str("service", "udp").Msgf("Received message type: %d", msgType)
+			switch msgType {
+			case 0:
+				p.getPulseSessionStart(data)
+				break
+			case 1:
+				p.getPulseData(data)
+				break
+			case 2:
+				p.getPulseSessionStop(data)
+				break
+			case 3:
+				p.getPulseCustomData(data)
+				break
+			default:
+				log.Warn().Str("service", "udp").Msgf("unknown message type: %d", msgType)
+			}
+		}(buffer[:n])
 	}
 }
 
