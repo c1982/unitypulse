@@ -2,3 +2,4 @@ vendor
 pulse.db
 deploy.sh
 pulse
+pulse.service.prod

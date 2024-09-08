@@ -13,8 +13,9 @@ func main() {
 	dbhost := flag.String("dbhost", "localhost", "Database host")
 	dbuser := flag.String("dbuser", "pulse", "Database user")
 	dbpass := flag.String("dbpass", "p@ssw0rd", "Database password")
-	dbname := flag.String("dbname", "pulse", "Database name")
+	dbname := flag.String("dbname", "pulsedb", "Database name")
 	dbport := flag.String("dbport", "5432", "Database port")
+	flag.Parse()
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)

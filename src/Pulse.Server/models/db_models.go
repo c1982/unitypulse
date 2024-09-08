@@ -11,14 +11,14 @@ type Sessions struct {
 	Version    string `json:"version"`
 	Platform   string `json:"platform"`
 	Device     string `json:"device"`
-	StartTime  int64  `json:"start_time"`
-	StopTime   int64  `json:"stop_time"`
+	StartTime  int64  `json:"start_time", gorm:"autoUpdateTime:milli"`
+	StopTime   int64  `json:"stop_time", gorm:"autoUpdateTime:milli"`
 }
 
 type Datas struct {
 	gorm.Model                     `json:"-"`
 	Session                        string `json:"-", gorm:"index"`
-	Timestamp                      int64  `json:"timestamp"`
+	Timestamp                      int64  `json:"timestamp", gorm:"autoUpdateTime:milli"`
 	SystemUsedMemory               int64  `json:"system_used_memory"`
 	TotalUsedMemory                int64  `json:"total_used_memory"`
 	GCUsedMemory                   int64  `json:"gc_used_memory"`
@@ -49,5 +49,5 @@ type CustomDatas struct {
 	Session    string `json:"session", gorm:"index"`
 	Key        string `json:"key"`
 	Value      int64  `json:"value"`
-	Timestamp  int64  `json:"time"`
+	Timestamp  int64  `json:"time", gorm:"autoUpdateTime:milli"`
 }

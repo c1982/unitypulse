@@ -62,7 +62,7 @@ func (r *Repository) StartSession(data *models.PulseSessionStart) error {
 
 func (r *Repository) StopSession(data *models.PulseSessionStop) error {
 	var sessionID = string(data.Session)
-	return r.db.Model(&models.Sessions{}).Where("session = ?", sessionID).Update("StopTime", time.Now()).Error
+	return r.db.Model(&models.Sessions{}).Where("session = ?", sessionID).Update("StopTime", time.Now().Unix()).Error
 }
 
 func (r *Repository) InsertData(data *models.PulseData) error {
