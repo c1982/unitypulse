@@ -7,7 +7,12 @@ namespace Pulse.Unity
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Init()
         {
-            UnityPulse.Instance.SetInterval(1f);
+            UnityPulse.Instance
+                .SetIdentifier(Application.identifier)
+                .SetPlatform(Application.platform.ToString())
+                .SetVersion(Application.version)
+                .SetDevice(SystemInfo.deviceName)
+                .SetInterval(1f);
         }
     }
 }

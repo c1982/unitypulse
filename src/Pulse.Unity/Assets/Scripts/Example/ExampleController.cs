@@ -13,7 +13,6 @@ namespace Example
         public void Awake()
         {
             Application.targetFrameRate = 60;
-
             InstantiateRandomCube();
         }
         

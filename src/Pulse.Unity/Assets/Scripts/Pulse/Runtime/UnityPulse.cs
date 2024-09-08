@@ -17,11 +17,11 @@ namespace Pulse.Unity
         private string _host;
         
         private byte[] _session;
-        private readonly byte[] _identifier;
-        private readonly byte[] _version;
-        private readonly byte[] _platform;
-        private readonly byte[] _device;
-        private readonly long[] _recorderValues;
+        private byte[] _identifier;
+        private byte[] _version;
+        private byte[] _platform;
+        private byte[] _device;
+        private long[] _recorderValues;
 
         private UdpTransport _transport;
         private readonly List<ProfilerRecorder> _recorders;
@@ -72,16 +72,48 @@ namespace Pulse.Unity
 
         private UnityPulse()
         {
-            var fpsMetric = 1;
-            
-            _identifier = Encoding.UTF8.GetBytes(Application.identifier);
-            _version = Encoding.UTF8.GetBytes(Application.version);
-            _platform = Encoding.UTF8.GetBytes(Application.platform.ToString());
+            var fpsMetric = 1; ;
             _device = Encoding.UTF8.GetBytes(SystemInfo.deviceModel);
             
             var recorderCount = _profileMetrics.Sum(x => x.Value.Length);
             _recorderValues = new long[recorderCount + fpsMetric];
             _recorders = new List<ProfilerRecorder>(recorderCount);
+        }
+        
+        public UnityPulse SetDevice(string device)
+        {
+            if(string.IsNullOrEmpty(device))
+                throw new ArgumentException("Device is empty");
+            
+            _device = Encoding.UTF8.GetBytes(device);
+            return this;
+        }
+        
+        public UnityPulse SetPlatform(string platform)
+        {
+            if(string.IsNullOrEmpty(platform))
+                throw new ArgumentException("Platform is empty");
+            
+            _platform = Encoding.UTF8.GetBytes(platform);
+            return this;
+        }
+        
+        public UnityPulse SetVersion(string version)
+        {
+            if(string.IsNullOrEmpty(version))
+                throw new ArgumentException("Version is empty");
+            
+            _version = Encoding.UTF8.GetBytes(version);
+            return this;
+        }
+        
+        public UnityPulse SetIdentifier(string identifier)
+        {
+            if(string.IsNullOrEmpty(identifier))
+                throw new ArgumentException("Identifier is empty");
+            
+            _identifier = Encoding.UTF8.GetBytes(identifier);
+            return this;
         }
         
         public UnityPulse SetInterval(float intervalSeconds)
@@ -115,7 +147,7 @@ namespace Pulse.Unity
             
             _transport?.Dispose();
         }
-
+        
         public void Collect()
         {
             if (!CanCollect())
@@ -132,7 +164,7 @@ namespace Pulse.Unity
             _transport?.SendData(buffer);
             _collectedPool.Return(buffer);
         }
-
+        
         public void Collect(byte[] key, long value)
         {
             if (!CanCollect())
@@ -147,6 +179,20 @@ namespace Pulse.Unity
             _collectedPool.Return(buffer);
         }
 
+        public void Collect(byte[] key, long value, bool immediate)
+        {
+            if (!_collecting)
+                return;
+            
+            var bufferSize = ByteSize + IntSize + _session.Length + IntSize + key.Length + LongSize;
+            var buffer = _collectedPool.Get(bufferSize);
+            var pulseCustomData = new UnityPulseCustomData(_session, key, value);
+            pulseCustomData.Write(ref buffer);
+            
+            _transport?.SendData(buffer);
+            _collectedPool.Return(buffer);
+        }
+        
         private void StartSession()
         {
             _session = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
