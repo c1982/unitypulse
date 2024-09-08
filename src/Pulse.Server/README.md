@@ -1,6 +1,12 @@
-## Run Grafana
+## Run Grafana with SQLite
 
-> docker run -rm -d -p 3000:3000 --name=grafana -v ./pulse.db:/var/lib/grafana/sqlite/pulse.db grafana/grafana-oss
+> docker run -d -p 3000:3000 --network pulse --name=grafana -v ./pulse.db:/var/lib/grafana/sqlite/pulse.db grafana/grafana-oss
+
+## Run PostgreSQL
+
+> docker network create -d bridge pulse
+> docker run -d --name=grafana --network pulse -p 3000:3000 grafana/grafana-oss
+> docker run -d --name=posgres --network pulse -p 5432:5432 -e POSTGRES_USER=pulse -e POSTGRES_DB=pulse -e POSTGRES_PASSWORD=p@ssw0rd postgres
 
 ### Compile on OSX for SQLite
 

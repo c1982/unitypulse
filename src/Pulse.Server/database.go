@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"Pulse.Server/models"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -13,7 +14,24 @@ type Repository struct {
 	db *gorm.DB
 }
 
-func NewRepository() (*Repository, error) {
+func NewRepositoryWithPostgreSQL(host string, username string, password string, database string, port string) (*Repository, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", host, username, password, database, port)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.AutoMigrate(&models.Sessions{}, &models.Datas{}, &models.CustomDatas{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &Repository{
+		db: db,
+	}, nil
+}
+
+func NewRepositoryWithSQLite() (*Repository, error) {
 	db, err := gorm.Open(sqlite.Open("pulse.db"), &gorm.Config{})
 	if err != nil {
 		return nil, err
