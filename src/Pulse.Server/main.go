@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+	udpaddr := flag.String("udpaddr", ":7771", "UDP server address")
+	webaddr := flag.String("webaddr", ":8080", "Web server address")
 	dbhost := flag.String("dbhost", "localhost", "Database host")
 	dbuser := flag.String("dbuser", "pulse", "Database user")
 	dbpass := flag.String("dbpass", "p@ssw0rd", "Database password")
@@ -22,8 +24,8 @@ func main() {
 		log.Fatal().Err(err).Msg("Error creating repository")
 	}
 
-	udpsrv := NewPulseUDPServer(":7771", repo)
-	websrv := NewPulseWebServer(":8080", repo)
+	udpsrv := NewPulseUDPServer(*udpaddr, repo)
+	websrv := NewPulseWebServer(*webaddr, repo)
 
 	go udpsrv.Start()
 	go websrv.Start()
