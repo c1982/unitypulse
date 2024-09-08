@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("com.mage.unitypulse.Tests")]
 namespace Pulse.Unity
 {
     internal readonly struct UnityPulseData
