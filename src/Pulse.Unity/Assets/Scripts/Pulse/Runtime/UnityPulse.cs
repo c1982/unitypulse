@@ -24,7 +24,7 @@ namespace Pulse.Unity
         private long[] _recorderValues;
 
         private UdpTransport _transport;
-        private readonly List<ProfilerRecorder> _recorders;
+        private List<ProfilerRecorder> _recorders;
         private readonly UnityPulseByteArrayPool _collectedPool = new(maxSize: 1024);
         
         private const int ByteSize = 1;
@@ -75,9 +75,7 @@ namespace Pulse.Unity
             var fpsMetric = 1; ;
             _device = Encoding.UTF8.GetBytes(SystemInfo.deviceModel);
             
-            var recorderCount = _profileMetrics.Sum(x => x.Value.Length);
-            _recorderValues = new long[recorderCount + fpsMetric];
-            _recorders = new List<ProfilerRecorder>(recorderCount);
+
         }
         
         public UnityPulse SetDevice(string device)
@@ -225,13 +223,13 @@ namespace Pulse.Unity
 
         private void StartRecorders()
         {
+            var recorderCount = _profileMetrics.Sum(x => x.Value.Length);
+            _recorderValues = new long[recorderCount + 1];
+            _recorders = new List<ProfilerRecorder>(recorderCount);
+            
             foreach (var category in _profileMetrics.Keys)
-            {
                 foreach (var metricName in _profileMetrics[category])
-                {
                     _recorders.Add(ProfilerRecorder.StartNew(category, metricName));
-                }
-            }
         }
 
         private void StopRecorders()
@@ -241,6 +239,8 @@ namespace Pulse.Unity
                 recorder.Stop();
                 recorder.Dispose();
             }
+            
+            _recorderValues = null;
         }
 
         private void FillRecordValues()
@@ -277,6 +277,5 @@ namespace Pulse.Unity
             _lastCollectTime = Time.realtimeSinceStartup;
             return true;
         }
-        
     }
 }
