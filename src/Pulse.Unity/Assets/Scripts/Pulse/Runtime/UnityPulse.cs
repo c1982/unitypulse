@@ -70,13 +70,7 @@ namespace Pulse.Unity
         public static UnityPulse Instance => _instance ??= new UnityPulse();
         private static UnityPulse _instance;
 
-        private UnityPulse()
-        {
-            var fpsMetric = 1; ;
-            _device = Encoding.UTF8.GetBytes(SystemInfo.deviceModel);
-            
-
-        }
+        private UnityPulse() { }
         
         public UnityPulse SetDevice(string device)
         {
@@ -134,6 +128,8 @@ namespace Pulse.Unity
             
             StartRecorders();
             StartSession();
+            
+            _collecting = true;
         }
 
         public void Stop()
@@ -203,8 +199,6 @@ namespace Pulse.Unity
             
             _transport?.SendData(buffer);
             _collectedPool.Return(buffer);
-            
-            _collecting = true;
         }
 
         private void StopSession()
