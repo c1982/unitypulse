@@ -12,6 +12,8 @@ namespace Pulse.Unity
                 .SetPlatform(Application.platform.ToString())
                 .SetVersion(Application.version)
                 .SetDevice(SystemInfo.deviceName)
+                .SetSendBufferSize(1024)
+                .SetErrorThreshold(5)
                 .SetInterval(1f);
         }
     }

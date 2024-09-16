@@ -6,12 +6,13 @@ namespace Pulse.Unity.Transports
     internal class UdpTransport : IDisposable
     {
         private readonly UdpClient _udpClient;
-        public UdpTransport(string host, int port)
+        public UdpTransport(string host, int port, int sendBufferSize, int receiveBufferSize)
         {
             _udpClient = new UdpClient(host, port);
-            _udpClient.Client.SendBufferSize = 512; 
-            _udpClient.Client.ReceiveBufferSize = 512;
+            _udpClient.Client.SendBufferSize = sendBufferSize; 
+            _udpClient.Client.ReceiveBufferSize = receiveBufferSize;
             _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _udpClient.DontFragment = true;
         }
         
         public int SendData(byte[] data)

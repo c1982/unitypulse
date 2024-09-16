@@ -11,8 +11,12 @@ namespace Pulse.Unity
     public sealed class UnityPulse
     {
         private bool _collecting;
-        private float _collectInterval;
+        private int _sendBufferSize;
+        private int _receiveBufferSize;
+        private int _errorThreshold;
+        private int _errorCount;
         private int _port;
+        private float _collectInterval;
         private float _lastCollectTime;
         private string _host;
         
@@ -25,8 +29,8 @@ namespace Pulse.Unity
 
         private UdpTransport _transport;
         private List<ProfilerRecorder> _recorders;
-        private readonly UnityPulseByteArrayPool _collectedPool = new(maxSize: 1024);
-        
+        private UnityPulseLogHandler _logHandler;
+        private readonly UnityPulseByteArrayPool _collectedPool = new(maxSize: 10);
         private const int ByteSize = 1;
         private const int IntSize = 4;
         private const int LongSize = 8;
@@ -70,13 +74,19 @@ namespace Pulse.Unity
         public static UnityPulse Instance => _instance ??= new UnityPulse();
         private static UnityPulse _instance;
 
-        private UnityPulse() { }
+        private UnityPulse()
+        {
+            _sendBufferSize = 1024;
+            _receiveBufferSize = 512;
+            _errorThreshold = 5;
+        }
         
         public UnityPulse SetDevice(string device)
         {
             if(string.IsNullOrEmpty(device))
                 throw new ArgumentException("Device is empty");
             
+            _logHandler?.LogInfo("Device set to: " + device);
             _device = Encoding.UTF8.GetBytes(device);
             return this;
         }
@@ -86,6 +96,7 @@ namespace Pulse.Unity
             if(string.IsNullOrEmpty(platform))
                 throw new ArgumentException("Platform is empty");
             
+            _logHandler?.LogInfo("Platform set to: " + platform);
             _platform = Encoding.UTF8.GetBytes(platform);
             return this;
         }
@@ -95,6 +106,7 @@ namespace Pulse.Unity
             if(string.IsNullOrEmpty(version))
                 throw new ArgumentException("Version is empty");
             
+            _logHandler?.LogInfo("Version set to: " + version);
             _version = Encoding.UTF8.GetBytes(version);
             return this;
         }
@@ -104,13 +116,49 @@ namespace Pulse.Unity
             if(string.IsNullOrEmpty(identifier))
                 throw new ArgumentException("Identifier is empty");
             
+            _logHandler?.LogInfo("Identifier set to: " + identifier);
             _identifier = Encoding.UTF8.GetBytes(identifier);
             return this;
         }
         
         public UnityPulse SetInterval(float intervalSeconds)
         {
+            _logHandler?.LogInfo("Collect interval set to: " + intervalSeconds);
             _collectInterval = intervalSeconds;
+            return this;
+        }
+        
+        public UnityPulse SetSendBufferSize(int size)
+        {
+            _logHandler?.LogInfo("Send buffer size set to: " + size);
+            _sendBufferSize = size;
+            return this;
+        }
+        
+        public UnityPulse SetReceiveBufferSize(int size)
+        {
+            _logHandler?.LogInfo("Receive buffer size set to: " + size);
+            _receiveBufferSize = size;
+            return this;
+        }
+        
+        public UnityPulse SetErrorThreshold(int threshold)
+        {
+            _logHandler?.LogInfo("Error threshold set to: " + threshold);
+            _errorThreshold = threshold;
+            return this;
+        }
+        
+        public UnityPulse SetLogHandler(UnityPulseLogHandler logHandler)
+        {
+            _logHandler = logHandler;
+            return this;
+        }
+        
+        public UnityPulse SetDefaultLogger()
+        {
+            _logHandler = new UnityPulseLogHandler();
+            _logHandler.LogInfo("Default logger set");
             return this;
         }
         
@@ -124,7 +172,8 @@ namespace Pulse.Unity
             
             _host = host;
             _port = port;
-            _transport = new UdpTransport(_host, _port);
+            _transport = new UdpTransport(_host, _port, _sendBufferSize, _receiveBufferSize);
+            _logHandler?.LogInfo("Pulse started with host: " + _host + " and port: " + _port);
             
             StartRecorders();
             StartSession();
@@ -155,8 +204,10 @@ namespace Pulse.Unity
             var pulseData = new UnityPulseData(_session, _recorderValues);
             pulseData.Write(ref buffer);
             
-            _transport?.SendData(buffer);
+            SendData(buffer);
             _collectedPool.Return(buffer);
+            
+            _logHandler?.LogInfo("Collected data");
         }
         
         public void Collect(byte[] key, long value)
@@ -169,8 +220,10 @@ namespace Pulse.Unity
             var pulseCustomData = new UnityPulseCustomData(_session, key, value);
             pulseCustomData.Write(ref buffer);
             
-            _transport?.SendData(buffer);
+            SendData(buffer);
             _collectedPool.Return(buffer);
+            
+            _logHandler?.LogInfo("Collected custom data with key: " + Encoding.UTF8.GetString(key) + " and value: " + value);
         }
 
         public void Collect(byte[] key, long value, bool immediate)
@@ -183,8 +236,10 @@ namespace Pulse.Unity
             var pulseCustomData = new UnityPulseCustomData(_session, key, value);
             pulseCustomData.Write(ref buffer);
             
-            _transport?.SendData(buffer);
+            SendData(buffer);
             _collectedPool.Return(buffer);
+            
+            _logHandler?.LogInfo("Collected custom data with key: " + Encoding.UTF8.GetString(key) + " and value: " + value);
         }
         
         private void StartSession()
@@ -197,8 +252,10 @@ namespace Pulse.Unity
             var start = new UnityPulseSessionStart(_session, _identifier, _version, _platform, _device);
             start.Write(ref buffer);
             
-            _transport?.SendData(buffer);
+            SendData(buffer);
             _collectedPool.Return(buffer);
+            
+            _logHandler?.LogInfo("Session started with id: " + Encoding.UTF8.GetString(_session));
         }
 
         private void StopSession()
@@ -209,10 +266,12 @@ namespace Pulse.Unity
             var stop = new UnityPulseSessionStop(_session);
             stop.Write(ref buffer);
             
-            _transport?.SendData(buffer);
+            SendData(buffer);
             _collectedPool.Return(buffer);
 
             _collecting = false;
+            
+            _logHandler?.LogInfo("Session stopped with id: " + Encoding.UTF8.GetString(_session));
         }
 
         private void StartRecorders()
@@ -224,6 +283,8 @@ namespace Pulse.Unity
             foreach (var category in _profileMetrics.Keys)
                 foreach (var metricName in _profileMetrics[category])
                     _recorders.Add(ProfilerRecorder.StartNew(category, metricName));
+            
+            _logHandler?.LogInfo("Started " + _recorders.Count + " recorders");
         }
 
         private void StopRecorders()
@@ -235,6 +296,27 @@ namespace Pulse.Unity
             }
             
             _recorderValues = null;
+            _logHandler?.LogInfo("Stopped " + _recorders.Count + " recorders");
+        }
+        
+        private void SendData(byte[] data)
+        {
+            try
+            {
+                _transport?.SendData(data);
+            }
+            catch (Exception e)
+            {
+                _errorCount += 1;
+                _logHandler?.LogError("Failed to send data: " + e.Message);
+            }
+
+            if (_errorCount >= _errorThreshold)
+            {
+                _collecting = false;
+                _errorCount = 0;
+                _logHandler?.LogWarning("Pulse stopped due to error threshold");
+            }
         }
 
         private void FillRecordValues()
