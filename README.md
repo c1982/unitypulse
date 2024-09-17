@@ -97,21 +97,21 @@ Pulse collects the following data:
 #### Render
 
 - **SetPass Calls Count**: The number of set pass calls.
-- **"Draw Calls Count"**: The number of draw calls.
-- **"Total Batches Count"**: The total number of batches.
-- **"Triangles Count"**: The number of triangles.
-- **"Vertices Count"**: The number of vertices.
-- **"Render Textures Count"**: The number of render textures.
-- **"Render Textures Bytes"**: The amount of memory used by render textures.
-- **"Render Textures Changes Count"**: The number of render texture changes.
-- **"Used Buffers Count"**: The number of used buffers.
-- **"Used Buffers Bytes"**: The amount of memory used by buffers.
-- **"Used Shaders Count"**: The number of used shaders.
-- **"Vertex Buffer Upload In Frame Count"**: The number of vertex buffer uploads.
-- **"Vertex Buffer Upload In Frame Bytes"**: The amount of memory used by vertex buffer uploads.
-- **"Index Buffer Upload In Frame Count"**: The number of index buffer uploads.
-- **"Index Buffer Upload In Frame Bytes"**: The amount of memory used by index buffer uploads.
-- **"Shadow Casters Count"**: The number of shadow casters.
+- **Draw Calls Count**: The number of draw calls.
+- **Total Batches Count**: The total number of batches.
+- **Triangles Count"**: The number of triangles.
+- **Vertices Count**: The number of vertices.
+- **Render Textures Count**: The number of render textures.
+- **Render Textures Bytes**: The amount of memory used by render textures.
+- **Render Textures Changes Count**: The number of render texture changes.
+- **Used Buffers Count**: The number of used buffers.
+- **Used Buffers Bytes**: The amount of memory used by buffers.
+- **Used Shaders Count**: The number of used shaders.
+- **Vertex Buffer Upload In Frame Count**: The number of vertex buffer uploads.
+- **Vertex Buffer Upload In Frame Bytes**: The amount of memory used by vertex buffer uploads.
+- **Index Buffer Upload In Frame Count**: The number of index buffer uploads.
+- **Index Buffer Upload In Frame Bytes**: The amount of memory used by index buffer uploads.
+- **Shadow Casters Count"**: The number of shadow casters.
 
 ### Grafana Dashboard
 
