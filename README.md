@@ -16,53 +16,110 @@ UnityPulse is a benchmarking tool designed to facilitate continuous performance 
 ### Prerequisites
 
 - Unity 2020 or higher
-- Go 1.16+ (required for backend scripts)
-- Basic knowledge of Unity's performance profiling tools
+- Start and up back-end listeners on your server ([Server README](https://github.com/c1982/unitypulse/blob/main/src/Pulse.Server/README.md))
+
 
 ### Installation
 
 0. Open Unity Packer Manager
 1. Add package from git URL
 2. Enter this URL:
+
     https://github.com/c1982/unitypulse.git?path=/src/Pulse.Unity/Assets/Scripts/Pulse   
 
 ### Usage
 
+Pulse automatically initialized when unity starts. You can start and stop Pulse by calling `UnityPulse.Instance.Start` and `UnityPulse.Instance.Stop` respectively. You can also collect custom data by calling `UnityPulse.Instance.Collect` with a key and value pair.
+
+Basic usage example:
+
 ```csharp
-using Pulse;
+using Pulse.Unity;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Example
 {
     public class ExampleController : MonoBehaviour
     {
-        private UnityPulse _pulse;
-        private readonly byte[] _updateTimeKeyName = System.Text.Encoding.UTF8.GetBytes("update_time");
+        private readonly byte[] _updateTimeKeyName = System.Text.Encoding.ASCII.GetBytes("update_time");
         private long _updateTime;
         
         public void Awake()
         {
-            _pulse = UnityPulse.Instance.SetTargetFrameRate(Application.targetFrameRate);
+            // Initialize Pulse
+            UnityPulse.Instance
+                .SetDefaultLogger()
+                .SetIdentifier(Application.identifier)
+                .SetPlatform(Application.platform.ToString())
+                .SetVersion(Application.version)
+                .SetDevice(SystemInfo.deviceName)
+                .SetSendBufferSize(1024)
+                .SetErrorThreshold(5)
+                .SetInterval(1f);
         }
         
         public void Start()
         {
-            _pulse.Start("127.0.0.1",7771);
-            Debug.Log("UnityPulse started");
+            // Start Pulse
+            UnityPulse.Instance.Start("127.0.0.1",7771);
         }
         
         public void Update()
         {
-            _pulse.Collect();
-            _pulse.Collect(_updateTimeKeyName, Random.Range(1,100));
+            // Collect Pulse data
+            UnityPulse.Instance.Collect();
+            
+            // Collect custom data
+            UnityPulse.Instance.Collect(_updateTimeKeyName, Random.Range(1,100));
         }
         
         public void OnDestroy()
         {
-            _pulse.Stop();
-            Debug.Log("UnityPulse stopped");
+            UnityPulse.Instance.Stop();
         }
     }
 }
 ```
+
+### Collected Data
+
+Pulse collects the following data:
+
+#### Memory
+
+- **System Used Memor**: The amount of memory used by the system.
+- **System Total Memory**: The total amount of memory available to the system.
+- **GC Used Memory**: The amount of memory used by the garbage collector.
+- **Audio Used Memory**: The amount of memory used by the audio system.
+- **Video Used Memory**: The amount of memory used by the video system.
+- **Profiler Used Memory**: The amount of memory used by the profiler.
+
+#### Render
+
+- **SetPass Calls Count**: The number of set pass calls.
+- **"Draw Calls Count"**: The number of draw calls.
+- **"Total Batches Count"**: The total number of batches.
+- **"Triangles Count"**: The number of triangles.
+- **"Vertices Count"**: The number of vertices.
+- **"Render Textures Count"**: The number of render textures.
+- **"Render Textures Bytes"**: The amount of memory used by render textures.
+- **"Render Textures Changes Count"**: The number of render texture changes.
+- **"Used Buffers Count"**: The number of used buffers.
+- **"Used Buffers Bytes"**: The amount of memory used by buffers.
+- **"Used Shaders Count"**: The number of used shaders.
+- **"Vertex Buffer Upload In Frame Count"**: The number of vertex buffer uploads.
+- **"Vertex Buffer Upload In Frame Bytes"**: The amount of memory used by vertex buffer uploads.
+- **"Index Buffer Upload In Frame Count"**: The number of index buffer uploads.
+- **"Index Buffer Upload In Frame Bytes"**: The amount of memory used by index buffer uploads.
+- **"Shadow Casters Count"**: The number of shadow casters.
+
+### Grafana Dashboard
+
+Pulse provides a Grafana dashboard to visualize the collected data. You can access the dashboard by navigating to `http://localhost:3000` in your browser and logging in with the default credentials:
+
+- **Username**: pulse
+- **Password**: admin
+
+Simple comparison between two sessions:
+
+![Dashboard](./assets/dashboard-1.png)
