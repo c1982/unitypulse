@@ -14,7 +14,7 @@ namespace Example
         {
             Application.targetFrameRate = 60;
             InstantiateRandomCube();
-            
+
             UnityPulse.Instance.SetDefaultLogger();
         }
         
