@@ -17,13 +17,13 @@ namespace Pulse.Unity.Transports
         
         public int SendData(byte[] data)
         {
-            var i= _udpClient.Send(data, data.Length);
-            return i;
+            var i= _udpClient?.Send(data, data.Length);
+            return i ?? 0;
         }
         
         public async void SendDataAsync(byte[] data)
         {
-            await _udpClient.SendAsync(data, data.Length);
+            await _udpClient?.SendAsync(data, data.Length)!;
         }
 
         public void Dispose()
