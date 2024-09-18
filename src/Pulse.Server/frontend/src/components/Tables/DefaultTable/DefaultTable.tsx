@@ -29,7 +29,7 @@ export const DefaultTable: React.FC<DefaultTableProps> = ({
                                     <DefaultTableHeader headers={tableHeaders} />
 
                                     {children ? (
-                                        children
+                                        <tbody>{children}</tbody>
                                     ) : (
                                         <DefaultTableBody tableData={tableData} />
                                     )}
