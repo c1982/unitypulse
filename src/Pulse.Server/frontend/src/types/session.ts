@@ -17,6 +17,11 @@ export interface Session {
 }
 
 export interface SessionDetail {
+    data: SessionDetailData[] | null;
+    session_id: string;
+}
+
+export interface SessionDetailData {
     session: string;
     timestamp: number;
     system_used_memory: number;
