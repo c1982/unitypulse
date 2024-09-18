@@ -1,53 +1,70 @@
 import { SessionData } from '../../types/session';
 import { useUTCDate } from '../../hooks/useUTCDate';
+import { useState } from 'react';
 
 export const SessionTableCard: React.FC<{ session: SessionData }> = ({ session }) => {
     const startUTC = useUTCDate(session.start_time);
     const stopUTC = useUTCDate(session.stop_time);
+    const [sessionDetailVisible, setSessionDetailVisible] = useState(false);
 
     return (
-        <tr className='border-b border-dashed last:border-b-0'>
-            <td className='ps-3 p-3 pl-0'>
-                <span className='font-semibold text-gray-600 text-md/normal'>
-                    {session.session}
-                </span>
-            </td>
+        <>
+            <tr className={sessionDetailVisible ? '' : 'border-b border-dashed last:border-b-0'}>
+                <td className='pl-0 p-6'>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                        {session.session}
+                    </span>
+                </td>
 
-            <td className='p-3 pr-0'>
-                <span className='font-semibold text-gray-600 text-md/normal'>
-                    {session.identifier}
-                </span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                        {session.identifier}
+                    </span>
+                </td>
 
-            <td className='p-3 pr-0'>
-                <span className='font-semibold text-gray-600 text-md/normal'>
-                    {session.version}
-                </span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                        {session.version}
+                    </span>
+                </td>
 
-            <td className='p-3 pr-12'>
-                <span className='font-semibold text-gray-600 text-md/normal'>
-                    {session.platform}
-                </span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                        {session.platform}
+                    </span>
+                </td>
 
-            <td className='p-3'>
-                <span className='font-semibold text-gray-600 text-md/normal'>{session.device}</span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                        {session.device}
+                    </span>
+                </td>
 
-            <td className='p-3'>
-                <span className='font-semibold text-gray-600 text-md/normal'>{startUTC}</span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>{startUTC}</span>
+                </td>
 
-            <td className='p-3'>
-                <span className='font-semibold text-gray-600 text-md/normal'>{stopUTC}</span>
-            </td>
+                <td>
+                    <span className='font-semibold text-gray-600 text-xs/normal'>{stopUTC}</span>
+                </td>
 
-            <td className='p-3 pr-0'>
-                <button className='text-primary-dark hover:text-primary-light bg-gray-200 hover:bg-gray-300 rounded-md px-3 py-1 text-sm font-medium'>
-                    Details
-                </button>
-            </td>
-        </tr>
+                <td>
+                    <button
+                        className='rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none'
+                        type='button'
+                        onClick={() => setSessionDetailVisible(!sessionDetailVisible)}>
+                        Details
+                    </button>
+                </td>
+            </tr>
+            {sessionDetailVisible && (
+                <tr
+                    className={
+                        sessionDetailVisible ? 'border-b border-dashed last:border-b-0' : ''
+                    }>
+                    <td>{sessionDetailVisible ? 'true' : 'false'}</td>
+                </tr>
+            )}
+        </>
     );
 };
