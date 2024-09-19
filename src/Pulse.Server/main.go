@@ -10,7 +10,6 @@ import (
 func main() {
 	udpaddr := flag.String("udpaddr", ":7771", "UDP server address")
 	webaddr := flag.String("webaddr", ":8080", "Web server address")
-	// ! Dockerfile dbhost should be postgres instead of localhost but local development should be localhost
 	dbhost := flag.String("dbhost", "postgres", "Database host")
 	dbuser := flag.String("dbuser", "pulse", "Database user")
 	dbpass := flag.String("dbpass", "p@ssw0rd", "Database password")

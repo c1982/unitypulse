@@ -2,9 +2,9 @@ import { SessionData, SessionDetail } from '../../types/session';
 import { useUTCDate } from '../../hooks/useUTCDate';
 import { useState } from 'react';
 import { getSessionDetailByID } from '../../services/sessionService';
-import { SimpleLineChart } from '../Charts/SimpleLineChart';
+import { SessionFPSLineChart } from '../Charts/SessionFPSLineChart';
 
-export const SessionTableCard: React.FC<{ session: SessionData }> = ({ session }) => {
+export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session }) => {
     const startUTC = useUTCDate(session.start_time);
     const stopUTC = useUTCDate(session.stop_time);
     const [sessionDetailVisible, setSessionDetailVisible] = useState(false);
@@ -17,43 +17,43 @@ export const SessionTableCard: React.FC<{ session: SessionData }> = ({ session }
 
     return (
         <>
-            <tr className={sessionDetailVisible ? '' : 'border-b border-dashed last:border-b-0'}>
+            <tr className='border-b border-dashed'>
                 <td className='pl-0 p-6'>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>
                         {session.session}
                     </span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>
                         {session.identifier}
                     </span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>
                         {session.version}
                     </span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>
                         {session.platform}
                     </span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>
                         {session.device}
                     </span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>{startUTC}</span>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>{startUTC}</span>
                 </td>
 
                 <td>
-                    <span className='font-semibold text-gray-600 text-xs/normal'>{stopUTC}</span>
+                    <span className='font-semibold text-gray-600 text-sm/normal'>{stopUTC}</span>
                 </td>
 
                 <td>
@@ -68,16 +68,11 @@ export const SessionTableCard: React.FC<{ session: SessionData }> = ({ session }
                     </button>
                 </td>
             </tr>
+
             {sessionDetailVisible && (
-                <tr>
-                    <td
-                        colSpan={7}
-                        className={
-                            sessionDetailVisible
-                                ? 'border-b border-dashed last:border-b-0 flex-1'
-                                : ''
-                        }>
-                        {sessionDetail ? <SimpleLineChart data={sessionDetail} /> : 'false'}
+                <tr className='animate-fade-in-down transition-all duration-300'>
+                    <td colSpan={8}>
+                        {sessionDetail ? <SessionFPSLineChart data={sessionDetail} /> : 'false'}
                     </td>
                 </tr>
             )}

@@ -21,12 +21,12 @@ services:
         depends_on:
             - postgres
         environment:
-            - GF_SECURITY_ADMIN_PASSWORD=admin 
-            - GF_SECURITY_ADMIN_USER=pulse  
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_SECURITY_ADMIN_USER=pulse
         networks:
             - pulse
         ports:
-            - "3000:3000"
+            - '3000:3000'
         volumes:
             - grafana_data:/var/lib/grafana
 

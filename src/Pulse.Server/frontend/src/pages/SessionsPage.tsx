@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getSessions } from '../services/sessionService';
 import { Session } from '../types/session';
 import { DefaultTable } from '../components/Tables/DefaultTable/DefaultTable';
-import { SessionTableCard } from '../components/Cards/SessionTableCard';
+import { SessionTableRow } from '../components/Cards/SessionTableRow';
 
 export const SessionsPage: React.FC = () => {
     const [page, setPage] = useState(1);
@@ -19,7 +19,7 @@ export const SessionsPage: React.FC = () => {
     }, [page, pageSize]);
 
     if (!sessions?.sessions) {
-        return <div>Loading...</div>;
+        return <div />;
     }
 
     return (
@@ -38,7 +38,7 @@ export const SessionsPage: React.FC = () => {
             tableTitle='Sessions'
             tableTitleDescription='View all sessions'>
             {sessions.sessions?.map((session) => {
-                return <SessionTableCard key={session.session} session={session} />;
+                return <SessionTableRow key={session.session} session={session} />;
             })}
         </DefaultTable>
     );
