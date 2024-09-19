@@ -7,7 +7,7 @@ export const DefaultTableBody: React.FC<DefaultTableBodyProps> = ({ tableData })
                 <tr>
                     {Object.keys(k).map((key) => (
                         <td key={key}>
-                            <span className='font-semibold text-gray-600 text-xs/normal'>
+                            <span className='font-semibold text-gray-600 text-sm/normal'>
                                 {k[key]}
                             </span>
                         </td>
