@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom"
+import { NavLink } from 'react-router-dom';
 
 interface NavLinkProps {
     children: React.ReactNode;
@@ -6,5 +6,12 @@ interface NavLinkProps {
 }
 
 export const CustomNavLink: React.FC<NavLinkProps> = ({ children, link, ...props }) => {
-    return <NavLink {...props} className='p-2 text-white hover:bg-gray-900 hover:text-white' to={link}>{children}</NavLink>
-}
+    return (
+        <NavLink
+            {...props}
+            className='p-3 rounded-lg text-white hover:bg-gray-900 hover:text-white'
+            to={link}>
+            {children}
+        </NavLink>
+    );
+};

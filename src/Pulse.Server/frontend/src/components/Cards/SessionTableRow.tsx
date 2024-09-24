@@ -3,6 +3,7 @@ import { useUTCDate } from '../../hooks/useUTCDate';
 import { useState } from 'react';
 import { getSessionDetailByID } from '../../services/sessionService';
 import { SessionFPSLineChart } from '../Charts/SessionFPSLineChart';
+import { SessionMemoryLineChart } from '../Charts/SessionMemoryLineChart';
 
 export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session }) => {
     const startUTC = useUTCDate(session.start_time);
@@ -71,9 +72,21 @@ export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session })
 
             {sessionDetailVisible && (
                 <tr className='animate-fade-in-down transition-all duration-300'>
-                    <td colSpan={8}>
-                        {sessionDetail ? <SessionFPSLineChart data={sessionDetail} /> : 'false'}
-                    </td>
+                    {sessionDetail ? (
+                        <td colSpan={8}>
+                            <div className='flex gap-3'>
+                                <div className='w-1/2'>
+                                    <SessionFPSLineChart data={sessionDetail} />
+                                </div>
+
+                                <div className='w-1/2'>
+                                    <SessionMemoryLineChart data={sessionDetail} />
+                                </div>
+                            </div>
+                        </td>
+                    ) : (
+                        ''
+                    )}
                 </tr>
             )}
         </>
