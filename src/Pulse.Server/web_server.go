@@ -49,6 +49,7 @@ func NewPulseWebServer(addr string, repositoy *Repository) *PulseWebServer {
 func (p *PulseWebServer) RegisterRoutes() {
 	p.routerGroup.GET("/sessions", p.controller.SessionHandler)
 	p.routerGroup.GET("/data", p.controller.DataListHandler)
+	p.routerGroup.GET("/sessionsByFilters", p.controller.SessionFilterHandler)
 }
 
 func (p *PulseWebServer) Start() error {

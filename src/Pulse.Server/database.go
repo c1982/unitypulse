@@ -119,6 +119,14 @@ func (r *Repository) GetSessions(offset, limit int) ([]models.Sessions, error) {
 	return sessions, err
 }
 
+func (r *Repository) GetSessionsWithFilters(offset, limit int, platform, version string, sessionIDs []string, device string) ([]models.Sessions, error) {
+	var sessions []models.Sessions
+	query := r.db.Model(&models.Sessions{})
+	query = applySessionFilters(query, platform, version, sessionIDs, device)
+	err := query.Offset(offset).Limit(limit).Find(&sessions).Error
+	return sessions, err
+}
+
 func (r *Repository) TotalSessionCount() (int64, error) {
 	var totalRecords int64
 	if err := r.db.Model(&models.Sessions{}).Count(&totalRecords).Error; err != nil {
@@ -132,4 +140,20 @@ func (r *Repository) GetDataList(sessionID string) ([]models.Datas, error) {
 	var dataList []models.Datas
 	err := r.db.Where("session = ?", sessionID).Find(&dataList).Error
 	return dataList, err
+}
+
+func applySessionFilters(query *gorm.DB, platform, version string, sessionIDs []string, device string) *gorm.DB {
+    if platform != "" {
+        query = query.Where("platform = ?", platform)
+    }
+    if version != "" {
+        query = query.Where("version = ?", version)
+    }
+    if len(sessionIDs) > 0 {
+        query = query.Where("session IN (?)", sessionIDs)
+    }
+    if device != "" {
+        query = query.Where("device = ?", device)
+    }
+    return query
 }

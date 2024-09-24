@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react';
-import { getSessions } from '../services/sessionService';
+import { getSessions, getSessionsWithFilters } from '../services/sessionService';
 import { Session } from '../types/session';
 import { DefaultTable } from '../components/Tables/DefaultTable/DefaultTable';
 import { SessionTableRow } from '../components/Cards/SessionTableRow';
 import { Select } from '../components/Select/Select';
 import { HeadingSecondary } from '../components/Typography/HeadingSecondary';
+import { SelectMulti } from '../components/Select/SelectMulti';
 
-type ComparisonSessions = {
-    first_session_id: string | null;
-    second_session_id: string | null;
+type SessionsFilters = {
+    platform?: string;
+    device?: string;
+    identifier?: string;
+    session_id?: string[];
+    version?: string;
 };
 
 export const SessionsPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [sessions, setSessions] = useState<Session | null>(null);
+    const [filters, setFilters] = useState<SessionsFilters | undefined>(undefined);
     const [filteredSessions, setFilteredSessions] = useState<Session | null>(sessions);
-    const [compareSessions, setCompareSessions] = useState<ComparisonSessions>({
-        first_session_id: null,
-        second_session_id: null,
-    });
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -32,65 +33,96 @@ export const SessionsPage: React.FC = () => {
     }, [page, pageSize]);
 
     useEffect(() => {
-        const { first_session_id, second_session_id } = compareSessions;
+        const fetchSessionsWithFilters = async () => {
+            if (filters) {
+                const sessionsData = await getSessionsWithFilters(page, pageSize, filters);
+                setFilteredSessions(sessionsData);
+            }
+        };
 
-        if (!sessions || !first_session_id || !second_session_id) {
-            setFilteredSessions(sessions);
-            return;
-        }
+        fetchSessionsWithFilters();
+    }, [page, pageSize, filters]);
 
-        const { sessions: sessionList, limit, page, total_count, total_pages } = sessions;
+    const uniqueElements = (array: string[]) => {
+        return array.filter((item, index) => array.indexOf(item) === index);
+    };
 
-        const firstSession = sessionList.find((session) => session.session === first_session_id);
-        const secondSession = sessionList.find((session) => session.session === second_session_id);
-
-        if (firstSession && secondSession && firstSession !== secondSession) {
-            setFilteredSessions({
-                sessions: [firstSession, secondSession],
-                limit,
-                page,
-                total_count,
-                total_pages,
-            });
-        }
-    }, [compareSessions, sessions]);
-
-    if (!filteredSessions?.sessions || !sessions?.sessions) {
+    if (!sessions?.sessions || !filteredSessions?.sessions) {
         return <div />;
     }
 
     return (
         <div>
-            <HeadingSecondary>
-                Compare two sessions by selecting them from the dropdowns below
-            </HeadingSecondary>
+            <HeadingSecondary>Compare sessions by selecting filters below</HeadingSecondary>
 
-            <div className='flex my-8'>
-                <div className='flex-1 flex gap-3'>
-                    <Select
-                        selectLabel='1.Session'
-                        selectOptions={sessions?.sessions.map((session) => session.session)}
-                        selectValue={compareSessions?.first_session_id || ''}
-                        selectOnChange={(e) =>
-                            setCompareSessions({
-                                ...compareSessions,
-                                first_session_id: e.toString(),
-                            })
-                        }
-                    />
+            <div className='flex flex-wrap gap-3 my-8'>
+                <SelectMulti
+                    selectLabel='Sessions'
+                    selectOptions={sessions?.sessions.map((session) => session.session)}
+                    selectValue={filters?.session_id || []}
+                    selectOnChange={(e) =>
+                        setFilters({
+                            ...filters,
+                            session_id: e as any,
+                        })
+                    }
+                />
 
-                    <Select
-                        selectLabel='2.Session'
-                        selectOptions={sessions?.sessions.map((session) => session.session)}
-                        selectValue={compareSessions?.second_session_id || ''}
-                        selectOnChange={(e) =>
-                            setCompareSessions({
-                                ...compareSessions,
-                                second_session_id: e.toString(),
-                            })
-                        }
-                    />
-                </div>
+                <Select
+                    selectLabel='Version'
+                    selectOptions={uniqueElements(
+                        sessions?.sessions.map((session) => session.version),
+                    )}
+                    selectValue={filters?.version || ''}
+                    selectOnChange={(e) =>
+                        setFilters({
+                            ...filters,
+                            version: e.toString(),
+                        })
+                    }
+                />
+
+                <Select
+                    selectLabel='Platform'
+                    selectOptions={uniqueElements(
+                        sessions?.sessions.map((session) => session.platform),
+                    )}
+                    selectValue={filters?.platform || ''}
+                    selectOnChange={(e) =>
+                        setFilters({
+                            ...filters,
+                            platform: e.toString(),
+                        })
+                    }
+                />
+
+                <Select
+                    selectLabel='Identifier'
+                    selectOptions={uniqueElements(
+                        sessions?.sessions.map((session) => session.identifier),
+                    )}
+                    selectValue={filters?.identifier || ''}
+                    selectOnChange={(e) =>
+                        setFilters({
+                            ...filters,
+                            identifier: e.toString(),
+                        })
+                    }
+                />
+
+                <Select
+                    selectLabel='Device'
+                    selectOptions={uniqueElements(
+                        sessions?.sessions.map((session) => session.device),
+                    )}
+                    selectValue={filters?.device || ''}
+                    selectOnChange={(e) =>
+                        setFilters({
+                            ...filters,
+                            device: e.toString(),
+                        })
+                    }
+                />
             </div>
 
             <DefaultTable
