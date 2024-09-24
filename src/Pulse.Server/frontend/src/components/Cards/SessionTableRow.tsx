@@ -85,7 +85,7 @@ export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session })
                             </div>
                         </td>
                     ) : (
-                        ''
+                        <td>''</td>
                     )}
                 </tr>
             )}
