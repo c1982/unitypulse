@@ -47,5 +47,5 @@ docker-compose up -d
 ```bash
 docker network create -d bridge pulse
 docker run -d --name=grafana --network pulse -p 3000:3000 grafana/grafana-oss
-docker run -d --name=posgres --network pulse -p 5432:5432 -e POSTGRES_USER=pulse -e POSTGRES_DB=pulse -e POSTGRES_PASSWORD=p@ssw0rd postgres
+docker run -d --name=posgres --network pulse -p 5432:5432 -e POSTGRES_USER=pulse -e POSTGRES_DB=pulsedb -e POSTGRES_PASSWORD=p@ssw0rd postgres
 ```
