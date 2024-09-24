@@ -6,18 +6,18 @@ This is the server component of the Unity Pulse project. It is a simple server t
 
 The server is configured using flags. The following flag variables are available:
 
-- `udpaddr` - The address to listen for incoming data on (default `:8080`)
-- `webaddr` - The address to serve the web API on (default `:8081`)
-- `dbhost` - The host of the database (default `localhost`)
-- `dbuser` - The username to connect to the database with (default `pulse`)
-- `dbpass` - The password to connect to the database with (default `p@ssw0rd`)
-- `dbname` - The name of the database to connect to (default `pulse`)
-- `dbport` - The port of the database (default `5432`)
+-   `udpaddr` - The address to listen for incoming data on (default `:7771`)
+-   `webaddr` - The address to serve the web API on (default `:8080`)
+-   `dbhost` - The host of the database (default `postgres`)
+-   `dbuser` - The username to connect to the database with (default `pulse`)
+-   `dbpass` - The password to connect to the database with (default `p@ssw0rd`)
+-   `dbname` - The name of the database to connect to (default `pulsedb`)
+-   `dbport` - The port of the database (default `5432`)
 
 ## Run Locally
 
 ```bash
-pulse -udpaddr :8080 -webaddr :8081 -dbhost localhost -dbuser pulse -dbpass p@ssw0rd -dbname pulse -dbport 5432
+pulse -udpaddr :7771 -webaddr :8080 -dbhost localhost -dbuser pulse -dbpass p@ssw0rd -dbname pulsedb -dbport 5432
 ```
 
 ## Run Service
@@ -30,7 +30,7 @@ sudo systemctl start pulse
 ```
 
 Follow logs
-    
+
 ```bash
 sudo journalctl -u pulse -f
 ```

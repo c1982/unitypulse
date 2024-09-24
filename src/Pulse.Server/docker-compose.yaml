@@ -42,6 +42,7 @@ services:
             - ./frontend/build:/app/frontend/build
         ports:
             - '8080:8080'
+            - '7771:7771/udp'
 
 networks:
     pulse:
