@@ -10,7 +10,8 @@ import (
 func main() {
 	udpaddr := flag.String("udpaddr", ":7771", "UDP server address")
 	webaddr := flag.String("webaddr", ":8080", "Web server address")
-	dbhost := flag.String("dbhost", "localhost", "Database host")
+	// ? If you would like to run locally without docker, you should change dbhost to localhost
+	dbhost := flag.String("dbhost", "postgres", "Database host")
 	dbuser := flag.String("dbuser", "pulse", "Database user")
 	dbpass := flag.String("dbpass", "p@ssw0rd", "Database password")
 	dbname := flag.String("dbname", "pulsedb", "Database name")
