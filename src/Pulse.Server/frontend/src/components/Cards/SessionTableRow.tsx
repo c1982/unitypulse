@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getSessionDetailByID } from '../../services/sessionService';
 import { SessionFPSLineChart } from '../Charts/SessionFPSLineChart';
 import { SessionMemoryLineChart } from '../Charts/SessionMemoryLineChart';
+import { SessionRenderCountChart } from '../Charts/SessionRenderCountChart';
 
 export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session }) => {
     const startUTC = useUTCDate(session.start_time);
@@ -71,23 +72,37 @@ export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session })
             </tr>
 
             {sessionDetailVisible && (
-                <tr className='animate-fade-in-down transition-all duration-300'>
-                    {sessionDetail ? (
-                        <td colSpan={8}>
-                            <div className='flex gap-3'>
-                                <div className='w-1/2'>
-                                    <SessionFPSLineChart data={sessionDetail} />
-                                </div>
+                sessionDetail ? (
+                    <>
+                        <tr className='animate-fade-in-down transition-all duration-300'>
+                                <td colSpan={8}>
+                                    <div className='flex gap-3'>
+                                        <div className='w-1/2'>
+                                            <SessionFPSLineChart data={sessionDetail} />
+                                        </div>
 
-                                <div className='w-1/2'>
-                                    <SessionMemoryLineChart data={sessionDetail} />
+                                        <div className='w-1/2'>
+                                            <SessionMemoryLineChart data={sessionDetail} />
+                                        </div>
+                                    </div>
+                                </td>
+                        </tr>
+                        
+                        <tr>
+                            <td colSpan={8}>
+                                <div className='flex gap-3'>
+                                    <div className='w-1/2'>
+                                        <SessionRenderCountChart data={sessionDetail} />
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    ) : (
+                            </td>
+                        </tr>
+                    </>
+                ) : (
+                    <tr>
                         <td>''</td>
-                    )}
-                </tr>
+                    </tr>
+                )
             )}
         </>
     );
