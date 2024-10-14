@@ -5,6 +5,7 @@ import { getSessionDetailByID } from '../../services/sessionService';
 import { SessionFPSLineChart } from '../Charts/SessionFPSLineChart';
 import { SessionMemoryLineChart } from '../Charts/SessionMemoryLineChart';
 import { SessionRenderCountChart } from '../Charts/SessionRenderCountChart';
+import { SessionRenderMemoryChart } from '../Charts/SessionRenderMemoryChart';
 
 export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session }) => {
     const startUTC = useUTCDate(session.start_time);
@@ -93,6 +94,10 @@ export const SessionTableRow: React.FC<{ session: SessionData }> = ({ session })
                                 <div className='flex gap-3'>
                                     <div className='w-1/2'>
                                         <SessionRenderCountChart data={sessionDetail} />
+                                    </div>
+
+                                    <div className='w-1/2'>
+                                        <SessionRenderMemoryChart data={sessionDetail} />
                                     </div>
                                 </div>
                             </td>

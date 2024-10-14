@@ -9,13 +9,23 @@ import {
     YAxis,
 } from 'recharts';
 import { HeadingSecondary } from '../Typography/HeadingSecondary';
+import { SessionDetailData } from '../../types/session';
 
-export const SessionRenderCountChart: React.FC<{ data: any }> = ({ data }) => {
+export const SessionRenderMemoryChart: React.FC<{ data: any }> = ({ data }) => {
     const formatTimestamp = (timestampInSeconds: number) => {
         const timestampInMilliseconds =
             timestampInSeconds >= 1_000_000_000 ? timestampInSeconds * 1000 : timestampInSeconds;
 
         return new Date(timestampInMilliseconds).toUTCString();
+    };
+
+    const formatMemory = (bytes: number) => {
+        let kb = bytes / 1024;
+        if (kb < 1024) return `${kb.toFixed(1)} KB`;
+        let mb = kb / 1024;
+        if (mb < 1024) return `${mb.toFixed(1)} MB`;
+        let gb = mb / 1024;
+        return `${gb.toFixed(1)} GB`;
     };
 
     if (!data?.data) {
@@ -24,11 +34,17 @@ export const SessionRenderCountChart: React.FC<{ data: any }> = ({ data }) => {
 
     return (
         <div className='h-auto border p-4 rounded-lg shadow-sm my-6'>
-            <HeadingSecondary textCenter>Render Counts</HeadingSecondary>
+            <HeadingSecondary textCenter>Render Memory</HeadingSecondary>
 
             <ResponsiveContainer width='100%' height='100%' minHeight={300}>
                 <LineChart
-                    data={data?.data}
+                    data={data?.data.map((d: SessionDetailData) => ({
+                        ...d,
+                        render_textures_bytes: d.render_textures_bytes,
+                        used_buffers_bytes: d.used_buffers_bytes,
+                        vertex_buffer_upload_in_frame_bytes: d.vertex_buffer_upload_in_frame_bytes,
+                        profiler_used_memory: d.profiler_used_memory,
+                    }))}                   
                     margin={{
                         top: 20,
                         right: 30,
@@ -53,6 +69,7 @@ export const SessionRenderCountChart: React.FC<{ data: any }> = ({ data }) => {
 
                     <YAxis
                         yAxisId='left'
+                        tickFormatter={(value) => formatMemory(value)}
                         tick={{ fill: '#666', fontSize: 12 }}
                         domain={[0, 'dataMax + 10']}
                     />
@@ -74,6 +91,22 @@ export const SessionRenderCountChart: React.FC<{ data: any }> = ({ data }) => {
                         labelFormatter={(label) =>
                             `Time: ${new Date(label).toLocaleString('en-US', { timeZone: 'UTC' })}`
                         }
+                        formatter={(value, name) => {
+                            let formattedValue = formatMemory(Number(value));
+
+                            switch (name) {
+                                case 'render_textures_bytes':
+                                    return [`${formattedValue}`, 'Render Textures Memory'];
+                                case 'used_buffers_bytes':
+                                    return [`${formattedValue}`, 'Used Buffers Memory'];
+                                case 'vertex_buffer_upload_in_frame_bytes':
+                                    return [`${formattedValue}`, 'Vertex Buffer Upload in Frame Memory'];
+                                case 'profiler_used_memory':
+                                    return [`${formattedValue}`, 'Profiler Used Memory'];
+                                default:
+                                    return [`${formattedValue}`, name];
+                            }
+                        }}
                     />
 
                     {/* Legend */}
@@ -97,126 +130,42 @@ export const SessionRenderCountChart: React.FC<{ data: any }> = ({ data }) => {
                         }}
                     />
 
-                    {/* Line for Set Pass Calls Count */}
+                    {/* Line for Render Textures Memory */}
                     <Line
                         yAxisId='left'
                         type='monotone'
-                        dataKey='set_pass_calls_count'
+                        dataKey='render_textures_bytes'
                         stroke='#8884d8'
                         strokeWidth={3}
                         activeDot={{ r: 8 }}
                     />
 
-                    {/* Line for Draw Calls Count */}
+                    {/* Line for Used Buffers Memory */}
                     <Line
                         yAxisId='left'
                         type='monotone'
-                        dataKey='draw_calls_count'
+                        dataKey='used_buffers_bytes'
                         stroke='#82ca9d'
                         strokeWidth={3}
                         activeDot={{ r: 8 }}
                     />
 
-                    {/* Line for Total Batches Count */}
+                    {/* Line for Vertex Buffer Upload in Frame Memory */}
                     <Line
                         yAxisId='left'
                         type='monotone'
-                        dataKey='total_batches_count'
+                        dataKey='vertex_buffer_upload_in_frame_bytes'
                         stroke='#f8b500'
                         strokeWidth={3}
                         activeDot={{ r: 8 }}
                     />
 
-                    {/* Line for Triangles Count */}
+                    {/* Line for Profiler Used Memory */}
                     <Line
                         yAxisId='left'
                         type='monotone'
-                        dataKey='triangles_count'
+                        dataKey='profiler_used_memory'
                         stroke='#ff7300'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-                    {/* Line for Vertices Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='vertices_count'
-                        stroke='#00C49F'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-                    {/* Line for Render Textures Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='render_textures_count'
-                        stroke='#FFBB28'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-                    {/* Line for Render Textures Changes Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='render_textures_changes_count'
-                        stroke='#0088FE'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-                    {/* Line for Used Buffers Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='used_buffers_count'
-                        stroke='#FF8042'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-
-                    {/* Line for Used Shaders Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='used_shaders_count'
-                        stroke='#A28DFF'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-
-                    {/* Line for Vertex Buffer Upload in Frame Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='vertex_buffer_upload_in_frame_count'
-                        stroke='#FF6384'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-
-                    {/* Line for Index Buffer Upload in Frame Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='index_buffer_upload_in_frame_count'
-                        stroke='#36A2EB'
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-
-
-                    {/* Line for Shadow Casters Count */}
-                    <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='shadow_casters_count'
-                        stroke='#FF9F40'
                         strokeWidth={3}
                         activeDot={{ r: 8 }}
                     />
