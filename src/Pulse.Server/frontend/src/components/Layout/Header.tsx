@@ -41,20 +41,19 @@ export const Header: React.FC = () => {
 
             <div className='bg-gray-700 w-full h-16 flex items-center'>
                 <div className='flex gap-3 ms-8'>
-                    <CustomNavLink link='/fps'>
+                    <CustomNavLink link='#'>
                         FPS
                     </CustomNavLink>
 
-                    <CustomNavLink link='/memory-usage'>
+                    <CustomNavLink link='#'>
                         Memory Usage
                     </CustomNavLink>
 
-                    <CustomNavLink link='/render-counts'>
+                    <CustomNavLink link='#'>
                         Render Counts
                     </CustomNavLink>
 
-                    <CustomNavLink link='/render-memory'>
-
+                    <CustomNavLink link='#'>
                         Render Memory
                     </CustomNavLink>
                 </div>
